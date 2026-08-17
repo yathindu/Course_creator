@@ -1,0 +1,304 @@
+{
+  "id": "g2_english_l1",
+  "version": 1,
+  "grade": 2,
+  "subject": "english",
+  "title": "Unit 1: Animals and Their Sounds",
+  "description": "Learn the names of common farm animals and the sounds they make.",
+  "pass_percentage": 70,
+  "activities": [
+    {
+      "id": "g2_english_l1_a1",
+      "type": "vocabulary",
+      "title": "Vocabulary: Cow",
+      "instructions": "Tap the word to learn its meaning and pronunciation.",
+      "word": "Cow",
+      "definition": "A farm animal that gives us milk.",
+      "sentence": "The cow says moo.",
+      "image": "cow.png",
+      "audio": "cow.mp3",
+      "video": "cow_scene.mp4"
+    },
+    {
+      "id": "g2_english_l1_a2",
+      "type": "vocabulary",
+      "title": "Vocabulary: Duck",
+      "instructions": "Tap the word to learn its meaning and pronunciation.",
+      "word": "Duck",
+      "definition": "A bird that likes to swim.",
+      "sentence": "The duck says quack.",
+      "image": "duck.png",
+      "audio": "duck.mp3"
+    },
+    {
+      "id": "g2_english_l1_a3",
+      "type": "mcq",
+      "title": "Choose the Animal",
+      "instructions": "Select the correct answer.",
+      "question": "Which animal says 'moo'?",
+      "options": [
+        "Cow",
+        "Duck",
+        "Cat",
+        "Dog"
+      ],
+      "correct_indices": [0]
+    },
+    {
+      "id": "g2_english_l1_a4",
+      "type": "mcq",
+      "title": "Choose the Sound",
+      "instructions": "Select the correct answer.",
+      "question": "What sound does a duck make?",
+      "options": [
+        "Quack",
+        "Moo",
+        "Meow",
+        "Bark"
+      ],
+      "correct_indices": [0]
+    },
+    {
+      "id": "g2_english_l1_a5",
+      "type": "mcq",
+      "title": "Choose All Farm Animals",
+      "instructions": "Select all the correct answers.",
+      "question": "Which of these are farm animals?",
+      "options": [
+        "Cow",
+        "Duck",
+        "Sheep",
+        "Lion"
+      ],
+      "correct_indices": [
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "id": "g2_english_l1_a6",
+      "type": "image_selection",
+      "title": "Find the Animal",
+      "instructions": "Look at the image choices and select the correct one.",
+      "question": "Which image shows a Duck?",
+      "options": [
+        {
+          "label": "Cow",
+          "image": "cow.png"
+        },
+        {
+          "label": "Duck",
+          "image": "duck.png"
+        },
+        {
+          "label": "Sheep",
+          "image": "sheep.png"
+        }
+      ],
+      "correct_indices": [1]
+    },
+    {
+      "id": "g2_english_l1_a7",
+      "type": "image_selection",
+      "title": "Find the Animal",
+      "instructions": "Look at the image choices and select the correct one.",
+      "question": "Which image shows a Cow?",
+      "options": [
+        {
+          "label": "Duck",
+          "image": "duck.png"
+        },
+        {
+          "label": "Sheep",
+          "image": "sheep.png"
+        },
+        {
+          "label": "Cow",
+          "image": "cow.png"
+        }
+      ],
+      "correct_indices": [2]
+    },
+    {
+      "id": "g2_english_l1_a8",
+      "type": "true_false",
+      "title": "True or False",
+      "instructions": "Choose the correct answer.",
+      "question": "A duck says quack.",
+      "correct_answer": true
+    },
+    {
+      "id": "g2_english_l1_a9",
+      "type": "true_false",
+      "title": "True or False",
+      "instructions": "Choose the correct answer.",
+      "question": "A cow says meow.",
+      "correct_answer": false
+    },
+    {
+      "id": "g2_english_l1_a10",
+      "type": "ordering",
+      "title": "Put the Words in Order",
+      "instructions": "Arrange the words to make the correct sentence.",
+      "words": [
+        "The",
+        "cow",
+        "says",
+        "moo."
+      ],
+      "correct_order": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "id": "g2_english_l1_a11",
+      "type": "ordering",
+      "title": "Put the Words in Order",
+      "instructions": "Arrange the words to make the correct sentence.",
+      "words": [
+        "The",
+        "duck",
+        "can",
+        "swim."
+      ],
+      "correct_order": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "id": "g2_english_l1_a12",
+      "type": "fill_blank",
+      "title": "Fill in the Blank",
+      "instructions": "Choose the correct answer.",
+      "question": "The cow says ______.",
+      "options": [
+        "moo",
+        "quack",
+        "meow"
+      ],
+      "correct_indices": [0]
+    },
+    {
+      "id": "g2_english_l1_a13",
+      "type": "fill_blank",
+      "title": "Fill in the Blank",
+      "instructions": "Choose the correct answer.",
+      "question": "A ______ can swim.",
+      "options": [
+        "duck",
+        "lion",
+        "horse"
+      ],
+      "correct_indices": [0]
+    },
+    {
+      "id": "g2_english_l1_a14",
+      "type": "listening",
+      "title": "Listen and Choose",
+      "instructions": "Listen to the audio and answer the question.",
+      "audio": "g2_l1_listening1.mp3",
+      "question": "Which animal did you hear?",
+      "options": [
+        "Cow",
+        "Duck",
+        "Dog"
+      ],
+      "correct_indices": [1]
+    },
+    {
+      "id": "g2_english_l1_a15",
+      "type": "listening",
+      "title": "Listen and Choose",
+      "instructions": "Listen to the audio and answer the question.",
+      "audio": "g2_l1_listening2.mp3",
+      "question": "What sound did you hear?",
+      "options": [
+        "Moo",
+        "Quack",
+        "Bark"
+      ],
+      "correct_indices": [0]
+    },
+    {
+      "id": "g2_english_l1_a16",
+      "type": "speaking",
+      "title": "Speak the Sentence",
+      "instructions": "Read the sentence aloud.",
+      "prompt_text": "The cow says moo.",
+      "acceptable_answers": [
+        "The cow says moo.",
+        "The cow says moo",
+        "Cow says moo.",
+        "Cow says moo"
+      ],
+      "audio": "g2_l1_speaking1.mp3"
+    },
+    {
+      "id": "g2_english_l1_a17",
+      "type": "speaking",
+      "title": "Speak the Sentence",
+      "instructions": "Read the sentence aloud.",
+      "prompt_text": "The duck says quack.",
+      "acceptable_answers": [
+        "The duck says quack.",
+        "The duck says quack",
+        "Duck says quack.",
+        "Duck says quack"
+      ],
+      "audio": "g2_l1_speaking2.mp3"
+    },
+    {
+      "id": "g2_english_l1_a18",
+      "type": "mcq",
+      "title": "Review",
+      "instructions": "Select the correct answer.",
+      "question": "Which animal gives us milk?",
+      "options": [
+        "Cow",
+        "Duck",
+        "Cat",
+        "Chicken"
+      ],
+      "correct_indices": [0]
+    },
+    {
+      "id": "g2_english_l1_a19",
+      "type": "mcq",
+      "title": "Challenge",
+      "instructions": "Select the correct answer.",
+      "question": "Which animal says 'quack'?",
+      "options": [
+        "Duck",
+        "Cow",
+        "Dog",
+        "Cat"
+      ],
+      "correct_indices": [0]
+    },
+    {
+      "id": "g2_english_l1_a20",
+      "type": "mcq",
+      "title": "Final Challenge",
+      "instructions": "Select all the correct answers.",
+      "question": "Which of these animals live on a farm?",
+      "options": [
+        "Cow",
+        "Duck",
+        "Sheep",
+        "Tiger"
+      ],
+      "correct_indices": [
+        0,
+        1,
+        2
+      ]
+    }
+  ]
+}

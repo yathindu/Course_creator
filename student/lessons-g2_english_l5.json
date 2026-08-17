@@ -1,0 +1,279 @@
+{
+  "id": "g2_english_l5",
+  "version": 2,
+  "grade": 2,
+  "subject": "english",
+  "title": "Unit 5: Vegetables",
+  "description": "Learn the names of common vegetables and identify them.",
+  "pass_percentage": 70,
+  "activities": [
+    {
+      "id": "g2_english_l5_a1",
+      "type": "vocabulary",
+      "title": "Vocabulary: Carrot",
+      "instructions": "Tap the word to learn its meaning and pronunciation.",
+      "word": "Carrot",
+      "definition": "A long orange vegetable.",
+      "sentence": "The carrot is orange.",
+      "image": "carrot.png",
+      "audio": "carrot.mp3"
+    },
+    {
+      "id": "g2_english_l5_a2",
+      "type": "mcq",
+      "title": "Choose the Vegetable",
+      "instructions": "Select the correct answer.",
+      "question": "Which one is a carrot?",
+      "options": [
+        "Carrot",
+        "Apple",
+        "Banana",
+        "Orange"
+      ],
+      "correct_indices": [0]
+    },
+    {
+      "id": "g2_english_l5_a3",
+      "type": "true_false",
+      "title": "True or False",
+      "instructions": "Choose the correct answer.",
+      "question": "A potato is a vegetable.",
+      "correct_answer": true
+    },
+    {
+      "id": "g2_english_l5_a4",
+      "type": "vocabulary",
+      "title": "Vocabulary: Potato",
+      "instructions": "Tap the word to learn its meaning and pronunciation.",
+      "word": "Potato",
+      "definition": "A round vegetable that grows under the ground.",
+      "sentence": "I like potatoes.",
+      "image": "potato.png",
+      "audio": "potato.mp3"
+    },
+    {
+      "id": "g2_english_l5_a5",
+      "type": "ordering",
+      "title": "Put the Words in Order",
+      "instructions": "Arrange the words to make the correct sentence.",
+      "words": [
+        "The",
+        "carrot",
+        "is",
+        "orange."
+      ],
+      "correct_order": [0, 1, 2, 3]
+    },
+    {
+      "id": "g2_english_l5_a6",
+      "type": "video",
+      "group": "Vegetable Info",
+      "title": "Vegetable Introduction Video",
+      "instructions": "Watch the video and answer the questions in the following exercises.",
+      "video": "vegetable.mp4"
+    },
+    {
+      "id": "g2_english_l5_a7",
+      "type": "mcq",
+      "group": "Vegetable Info",
+      "title": "Choose the Vegetable",
+      "instructions": "Select the correct answer.",
+      "question": "Which vegetable grows under the ground?",
+      "options": [
+        "Potato",
+        "Apple",
+        "Mango",
+        "Grapes"
+      ],
+      "correct_indices": [0]
+    },
+    {
+      "id": "g2_english_l5_a8",
+      "type": "mcq",
+      "group": "Vegetable Info",
+      "title": "Choose All Vegetables",
+      "instructions": "Select all the correct answers.",
+      "question": "Which of these are vegetables?",
+      "options": [
+        "Carrot",
+        "Potato",
+        "Tomato",
+        "Banana"
+      ],
+      "correct_indices": [0, 1, 2]
+    },
+    {
+      "id": "g2_english_l5_a9",
+      "type": "image_selection",
+      "group": "Vegetable Info",
+      "title": "Find the Vegetable",
+      "instructions": "Look at the image choices and select the correct one.",
+      "question": "Which image shows a carrot?",
+      "options": [
+        {
+          "label": "Potato",
+          "image": "potato.png"
+        },
+        {
+          "label": "Carrot",
+          "image": "carrot.png"
+        },
+        {
+          "label": "Tomato",
+          "image": "tomato.png"
+        }
+      ],
+      "correct_indices": [1]
+    },
+    {
+      "id": "g2_english_l5_a10",
+      "type": "true_false",
+      "group": "Vegetable Info",
+      "title": "True or False",
+      "instructions": "Choose the correct answer.",
+      "question": "A carrot is a vegetable.",
+      "correct_answer": true
+    },
+    {
+      "id": "g2_english_l5_a11",
+      "type": "fill_blank",
+      "title": "Complete the Sentence",
+      "instructions": "Choose the word that completes the sentence.",
+      "question": "The _____ is orange.",
+      "options": [
+        "carrot",
+        "banana",
+        "apple",
+        "grape"
+      ],
+      "correct_indices": [1]
+    },
+    {
+      "id": "g2_english_l5_a12",
+      "type": "image_selection",
+      "title": "Find the Potato",
+      "instructions": "Look at the images and select the correct one.",
+      "question": "Which image shows a potato?",
+      "options": [
+        {
+          "label": "Carrot",
+          "image": "carrot.png"
+        },
+        {
+          "label": "Potato",
+          "image": "potato.png"
+        },
+        {
+          "label": "Tomato",
+          "image": "tomato.png"
+        }
+      ],
+      "correct_indices": [1]
+    },
+    {
+      "id": "g2_english_l5_a13",
+      "type": "mcq",
+      "title": "Choose the Correct Answer",
+      "instructions": "Select the correct answer.",
+      "question": "Which vegetable is usually orange?",
+      "options": [
+        "Carrot",
+        "Potato",
+        "Cucumber",
+        "Onion"
+      ],
+      "correct_indices": [0]
+    },
+    {
+      "id": "g2_english_l5_a14",
+      "type": "ordering",
+      "title": "Put the Words in Order",
+      "instructions": "Arrange the words to make the correct sentence.",
+      "words": [
+        "I",
+        "like",
+        "potatoes."
+      ],
+      "correct_order": [0, 1, 2]
+    },
+    {
+      "id": "g2_english_l5_a15",
+      "type": "true_false",
+      "title": "True or False",
+      "instructions": "Choose the correct answer.",
+      "question": "A banana is a vegetable.",
+      "correct_answer": false
+    },
+    {
+      "id": "g2_english_l5_a16",
+      "type": "fill_blank",
+      "title": "Complete the Sentence",
+      "instructions": "Choose the word that completes the sentence.",
+      "question": "I like _____.",
+      "options": [
+        "potatoes",
+        "banana",
+        "apple",
+        "orange"
+      ],
+      "correct_indices": [1]
+    },
+    {
+      "id": "g2_english_l5_a17",
+      "type": "mcq",
+      "title": "Find the Vegetable",
+      "instructions": "Select the correct answer.",
+      "question": "Which one is a vegetable?",
+      "options": [
+        "Carrot",
+        "Mango",
+        "Banana",
+        "Grape"
+      ],
+      "correct_indices": [0]
+    },
+    {
+      "id": "g2_english_l5_a18",
+      "type": "image_selection",
+      "title": "Find the Tomato",
+      "instructions": "Look at the image choices and select the correct one.",
+      "question": "Which image shows a tomato?",
+      "options": [
+        {
+          "label": "Potato",
+          "image": "potato.png"
+        },
+        {
+          "label": "Carrot",
+          "image": "carrot.png"
+        },
+        {
+          "label": "Tomato",
+          "image": "tomato.png"
+        }
+      ],
+      "correct_indices": [2]
+    },
+    {
+      "id": "g2_english_l5_a19",
+      "type": "true_false",
+      "title": "True or False",
+      "instructions": "Choose the correct answer.",
+      "question": "A potato grows under the ground.",
+      "correct_answer": true
+    },
+    {
+      "id": "g2_english_l5_a20",
+      "type": "ordering",
+      "title": "Put the Words in Order",
+      "instructions": "Arrange the words to make the correct sentence.",
+      "words": [
+        "The",
+        "potato",
+        "grows",
+        "underground."
+      ],
+      "correct_order": [0, 1, 2, 3]
+    }
+  ]
+}

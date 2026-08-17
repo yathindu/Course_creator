@@ -1,0 +1,349 @@
+{
+  "id": "g2_maths_l1",
+  "version": 3,
+  "grade": 2,
+  "subject": "maths",
+  "medium": "sinhala",
+  "title": "පාඩම 1: 1 සිට 100 දක්වා සංඛ්‍යා",
+  "description": "1 සිට 100 දක්වා සංඛ්‍යා හඳුනා ගැනීම, ගණන් කිරීම, සංසන්දනය කිරීම සහ පිළිවෙළට සැකසීම ඉගෙන ගනිමු.",
+  "pass_percentage": 70,
+  "activities": [
+    {
+      "id": "g2_maths_l1_a1",
+      "type": "vocabulary",
+      "title": "වචන මාලාව",
+      "instructions": "වචනය මත තට්ටු කර අර්ථය ඉගෙන ගන්න.",
+      "word": "සංඛ්‍යාව",
+      "definition": "ගණන් කිරීමට භාවිතා කරන අංකයකි.",
+      "sentence": "අපි අද සංඛ්‍යා ඉගෙන ගනිමු.",
+      "image": "images/number.png",
+      "audio": "audios/number_si.mp3"
+    },
+    {
+      "id": "g2_maths_l1_a2",
+      "type": "image_selection",
+      "title": "පින්තූරය තෝරන්න",
+      "instructions": "ඉලක්කම 12 පෙන්වන රූපය තෝරන්න.",
+      "question": "නිවැරදි රූපය තෝරන්න.",
+      "options": [
+        {
+          "label": "10",
+          "image": "images/10.png"
+        },
+        {
+          "label": "12",
+          "image": "images/12.png"
+        },
+        {
+          "label": "15",
+          "image": "images/15.png"
+        }
+      ],
+      "correct_indices": [
+        1
+      ]
+    },
+    {
+      "id": "g2_maths_l1_a3",
+      "type": "mcq",
+      "title": "නිවැරදි පිළිතුර තෝරන්න",
+      "instructions": "නිවැරදි පිළිතුර තෝරන්න.",
+      "question": "25 ට පසුව එන සංඛ්‍යාව කුමක්ද?",
+      "options": [
+        "24",
+        "26",
+        "27",
+        "28"
+      ],
+      "correct_indices": [
+        1
+      ]
+    },
+    {
+      "id": "g2_maths_l1_a4",
+      "type": "true_false",
+      "title": "හරිද වැරදිද",
+      "instructions": "නිවැරදි පිළිතුර තෝරන්න.",
+      "question": "100 යනු 99 ට වඩා විශාල සංඛ්‍යාවකි.",
+      "correct_answer": true
+    },
+    {
+      "id": "g2_maths_l1_a5",
+      "type": "image_selection",
+      "title": "පින්තූරය තෝරන්න",
+      "instructions": "ඇපල් 5ක් ඇති රූපය තෝරන්න.",
+      "question": "නිවැරදි රූපය තෝරන්න.",
+      "options": [
+        {
+          "label": "4",
+          "image": "images/apple4.png"
+        },
+        {
+          "label": "5",
+          "image": "images/apple5.png"
+        },
+        {
+          "label": "6",
+          "image": "images/apple6.png"
+        }
+      ],
+      "correct_indices": [
+        1
+      ]
+    },
+    {
+      "id": "g2_maths_l1_a6",
+      "type": "fill_blank",
+      "title": "හිස්තැන පුරවන්න",
+      "instructions": "නිවැරදි පිළිතුර තෝරන්න.",
+      "question": "18,19,__,21",
+      "options": [
+        "17",
+        "20",
+        "22"
+      ],
+      "correct_indices": [
+        1
+      ]
+    },
+    {
+      "id": "g2_maths_l1_a7",
+      "type": "mcq",
+      "title": "නිවැරදි පිළිතුර තෝරන්න",
+      "instructions": "නිවැරදි පිළිතුර තෝරන්න.",
+      "question": "50 ට පෙර එන සංඛ්‍යාව කුමක්ද?",
+      "options": [
+        "48",
+        "47",
+        "49",
+        "51"
+      ],
+      "correct_indices": [
+        2
+      ]
+    },
+    {
+      "id": "g2_maths_l1_a8",
+      "type": "ordering",
+      "title": "පිළිවෙළට සකසන්න",
+      "instructions": "කුඩා සිට විශාල දක්වා සකසන්න.",
+      "words": [
+        "45",
+        "12",
+        "78",
+        "30"
+      ],
+      "correct_order": [
+        1,
+        3,
+        0,
+        2
+      ]
+    },
+    {
+      "id": "g2_maths_l1_a9",
+      "type": "image_selection",
+      "title": "පින්තූරය තෝරන්න",
+      "instructions": "වැඩි ඇපල් ඇති රූපය තෝරන්න.",
+      "question": "නිවැරදි රූපය තෝරන්න.",
+      "options": [
+        {
+          "label": "3",
+          "image": "images/apple3.png"
+        },
+        {
+          "label": "7",
+          "image": "images/apple7.png"
+        },
+        {
+          "label": "5",
+          "image": "images/apple5.png"
+        }
+      ],
+      "correct_indices": [
+        1
+      ]
+    },
+    {
+      "id": "g2_maths_l1_a10",
+      "type": "mcq",
+      "title": "නිවැරදි පිළිතුර තෝරන්න",
+      "instructions": "නිවැරදි පිළිතුර තෝරන්න.",
+      "question": "90 ට පසුව එන සංඛ්‍යාව කුමක්ද?",
+      "options": [
+        "89",
+        "91",
+        "92",
+        "93"
+      ],
+      "correct_indices": [
+        1
+      ]
+    },
+    {
+      "id": "g2_maths_l1_a11",
+      "type": "vocabulary",
+      "title": "වචන මාලාව",
+      "instructions": "වචනය මත තට්ටු කර අර්ථය ඉගෙන ගන්න.",
+      "word": "ගණන් කිරීම",
+      "definition": "වස්තු එකින් එක ගණනය කිරීම.",
+      "sentence": "අපි පන්දු ගණන් කරමු.",
+      "image": "images/count.png",
+      "audio": "audios/count_si.mp3"
+    },
+    {
+      "id": "g2_maths_l1_a12",
+      "type": "image_selection",
+      "title": "පින්තූරය තෝරන්න",
+      "instructions": "අංකය 9 පෙන්වන රූපය තෝරන්න.",
+      "question": "නිවැරදි රූපය තෝරන්න.",
+      "options": [
+        {
+          "label": "8",
+          "image": "images/8.png"
+        },
+        {
+          "label": "9",
+          "image": "images/9.png"
+        },
+        {
+          "label": "6",
+          "image": "images/6.png"
+        }
+      ],
+      "correct_indices": [
+        1
+      ]
+    },
+    {
+      "id": "g2_maths_l1_a13",
+      "type": "mcq",
+      "title": "නිවැරදි පිළිතුර තෝරන්න",
+      "instructions": "නිවැරදි පිළිතුර තෝරන්න.",
+      "question": "40 ට පසුව එන සංඛ්‍යාව කුමක්ද?",
+      "options": [
+        "39",
+        "41",
+        "42",
+        "43"
+      ],
+      "correct_indices": [
+        1
+      ]
+    },
+    {
+      "id": "g2_maths_l1_a14",
+      "type": "listening",
+      "title": "සවන් දෙන්න",
+      "instructions": "හඬට සවන් දී නිවැරදි පිළිතුර තෝරන්න.",
+      "audio": "audios/g2_m_l1_listening1_si.mp3",
+      "question": "ඔබට ඇසුණේ කුමන සංඛ්‍යාවද?",
+      "options": [
+        "16",
+        "18",
+        "20"
+      ],
+      "correct_indices": [
+        1
+      ]
+    },
+    {
+      "id": "g2_maths_l1_a15",
+      "type": "true_false",
+      "title": "හරිද වැරදිද",
+      "instructions": "නිවැරදි පිළිතුර තෝරන්න.",
+      "question": "32 යනු 23 ට වඩා කුඩා සංඛ්‍යාවකි.",
+      "correct_answer": false
+    },
+    {
+      "id": "g2_maths_l1_a16",
+      "type": "image_selection",
+      "title": "පින්තූරය තෝරන්න",
+      "instructions": "අංකය 25 පෙන්වන රූපය තෝරන්න.",
+      "question": "නිවැරදි රූපය තෝරන්න.",
+      "options": [
+        {
+          "label": "24",
+          "image": "images/24.png"
+        },
+        {
+          "label": "25",
+          "image": "images/25.png"
+        },
+        {
+          "label": "26",
+          "image": "images/26.png"
+        }
+      ],
+      "correct_indices": [
+        1
+      ]
+    },
+    {
+      "id": "g2_maths_l1_a17",
+      "type": "ordering",
+      "title": "පිළිවෙළට සකසන්න",
+      "instructions": "විශාල සිට කුඩා දක්වා සකසන්න.",
+      "words": [
+        "21",
+        "90",
+        "67",
+        "34"
+      ],
+      "correct_order": [
+        1,
+        2,
+        3,
+        0
+      ]
+    },
+    {
+      "id": "g2_maths_l1_a18",
+      "type": "mcq",
+      "title": "නිවැරදි පිළිතුර තෝරන්න",
+      "instructions": "නිවැරදි පිළිතුර තෝරන්න.",
+      "question": "88 ට වඩා කුඩා සංඛ්‍යාව කුමක්ද?",
+      "options": [
+        "89",
+        "90",
+        "87",
+        "99"
+      ],
+      "correct_indices": [
+        2
+      ]
+    },
+    {
+      "id": "g2_maths_l1_a19",
+      "type": "fill_blank",
+      "title": "හිස්තැන පුරවන්න",
+      "instructions": "නිවැරදි පිළිතුර තෝරන්න.",
+      "question": "__,41,42",
+      "options": [
+        "39",
+        "40",
+        "43"
+      ],
+      "correct_indices": [
+        1
+      ]
+    },
+    {
+      "id": "g2_maths_l1_a20",
+      "type": "mcq",
+      "title": "නිවැරදි පිළිතුර තෝරන්න",
+      "instructions": "නිවැරදි පිළිතුරු සියල්ල තෝරන්න.",
+      "question": "පහත සංඛ්‍යා අතර ඉරට්ටේ සංඛ්‍යා තෝරන්න.",
+      "options": [
+        "18",
+        "27",
+        "42",
+        "55"
+      ],
+      "correct_indices": [
+        0,
+        2
+      ]
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+# Secrets -- never commit these; set them in Streamlit Cloud's Secrets dashboard instead
+.env
+.streamlit/secrets.toml
+
+# Internal dev notes/tooling config, not part of the published project
+CLAUDE.md
+.claude/
+
+# Generated/draft media -- regenerated on demand, not source
+drafts_huggingface/
+drafts_openrouter/
+generated_content/
+generated_content_openrouter/
+generated_videos/
+content_drafts/
+automation_output/
+openrouter_output/
+courseware_output/
+results_huggingface*/
+results_openrouter*/
+cost_run_huggingface/
+cost_run_openrouter/
+cost_report.json
+comparison_summary.json
+share_package/
+
+# Python
+__pycache__/
+*.pyc
+
+# Reference app build -- 255MB, way over GitHub's single-file limit, not source
+*.apk
