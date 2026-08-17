@@ -265,7 +265,7 @@ if st.session_state["source_text"]:
                 if gcol1.button("Generate lessons for this chapter", key=f"g_gen_{gi}"):
                     with st.spinner("Planning lessons..."):
                         try:
-                            from courseware_schema import Grouping as GroupingModel
+                            from professional.courseware_schema import Grouping as GroupingModel
                             lessons = generate_lesson_skeletons(GroupingModel(**grouping), meta["skill_area"], meta["subject"], meta["medium"])
                             st.session_state["lessons_by_group"][grouping["id"]] = [l.model_dump() for l in lessons]
                             st.rerun()
@@ -286,7 +286,7 @@ if st.session_state["source_text"]:
                     if lcol1.button("Generate activities" if not is_generated else "Regenerate activities", key=f"l_gen_{gi}_{li}"):
                         with st.spinner("Writing activities..."):
                             try:
-                                from courseware_schema import LessonSkeleton
+                                from professional.courseware_schema import LessonSkeleton
                                 generated = generate_lesson_activities(
                                     LessonSkeleton(**lesson), st.session_state["source_text"],
                                     meta["skill_area"], meta["subject"], meta["medium"],
