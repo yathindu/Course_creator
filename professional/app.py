@@ -197,23 +197,44 @@ if "pending_jobs" not in st.session_state:
 if "ready_results" not in st.session_state:
     st.session_state["ready_results"] = {}
 
-for _job_key, _job in list(st.session_state["pending_jobs"].items()):
-    if _job["future"].done():
-        try:
-            _detail = _job["future"].result()
-            st.session_state["ready_results"][_job_key] = {
-                "kind": _job["kind"], "path": _job["result_path"], "detail": _detail, "error": None}
-        except Exception as e:
-            st.session_state["ready_results"][_job_key] = {
-                "kind": _job["kind"], "path": _job["result_path"], "detail": None, "error": str(e)}
-        del st.session_state["pending_jobs"][_job_key]
+@st.fragment(run_every=2 if st.session_state["pending_jobs"] else None)
+def _poll_pending_jobs():
+    # Streamlit only re-executes the script on user interaction -- a background job
+    # finishing on its own doesn't trigger anything by itself, so without this a
+    # completed generation would just sit in ready_results, invisible, until the
+    # teacher happened to click something (switch questions, etc.) that forced a
+    # rerun. run_every=2 polls every 2s *only* while jobs are actually pending (this
+    # decorator argument is re-evaluated fresh on every full rerun, since the whole
+    # script -- including this function definition -- re-executes top to bottom).
+    resolved_any = False
+    for _job_key, _job in list(st.session_state["pending_jobs"].items()):
+        if _job["future"].done():
+            try:
+                _detail = _job["future"].result()
+                st.session_state["ready_results"][_job_key] = {
+                    "kind": _job["kind"], "path": _job["result_path"], "detail": _detail, "error": None}
+            except Exception as e:
+                st.session_state["ready_results"][_job_key] = {
+                    "kind": _job["kind"], "path": _job["result_path"], "detail": None, "error": str(e)}
+            del st.session_state["pending_jobs"][_job_key]
+            resolved_any = True
 
-if st.session_state["pending_jobs"]:
-    _pcol1, _pcol2 = st.columns([4, 1])
-    _pcol1.info(f"\U0001F504 {len(st.session_state['pending_jobs'])} generation(s) running in the "
-                "background -- feel free to switch questions, they'll keep going.")
-    if _pcol2.button("Refresh"):
-        st.rerun()
+    if resolved_any:
+        # scope="app": a plain st.rerun() here would only re-run this fragment, but the
+        # Generate section further down (which reads ready_results for the *currently
+        # selected* task) lives outside the fragment and needs the whole page to rerun
+        # to pick the result up.
+        st.rerun(scope="app")
+
+    if st.session_state["pending_jobs"]:
+        _pcol1, _pcol2 = st.columns([4, 1])
+        _pcol1.info(f"\U0001F504 {len(st.session_state['pending_jobs'])} generation(s) running in the "
+                    "background -- feel free to switch questions, they'll keep going.")
+        if _pcol2.button("Refresh"):
+            st.rerun(scope="app")
+
+
+_poll_pending_jobs()
 
 _approved_count = sum(1 for _kind, _t in all_tasks if (final_root / _t["out_path"]).exists())
 st.progress(_approved_count / len(all_tasks),
