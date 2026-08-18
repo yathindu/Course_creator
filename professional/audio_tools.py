@@ -1,31 +1,32 @@
 """
-Shared audio synthesis, used by both generate_lesson_media.py and
-openrouter_pipeline.py's generate_audio tools.
+Shared gTTS-based audio synthesis, used by both generate_lesson_media.py and
+openrouter_pipeline.py's generate_audio tools (gTTS is free regardless of
+platform, so this lives in one place instead of being duplicated).
 
-English audio uses gTTS (free, one call, "voice" picks an accent via its
-`tld` param -- see VOICES below).
+Voice/accent control: gTTS has no distinct named voices, but its `tld`
+parameter selects which Google Translate regional domain serves the request,
+producing audibly different English accents (see VOICES below). Sinhala only
+has one voice regardless of tld.
 
-Sinhala audio uses a dedicated model, SinhalaVITS-TTS-F1 (see
-sinhala_vits.py), not gTTS. gTTS's Sinhala voice was tested and found
-genuinely unintelligible by a real listener -- not a style preference, an
-actual comprehension failure -- so this is a hard swap for Sinhala only, not
-an option, not something the `voice` parameter toggles. If SinhalaVITS fails
-for any reason (its dependency stack is real added weight: torch/torchaudio/
-torchcodec/coqui-tts, plus a lazy ~950MB checkpoint download on first use),
-this falls back to gTTS automatically rather than failing the whole
-generation -- gTTS's Sinhala is still technically speech, just not good
-speech, so a fallback beats a hard error.
+A dedicated Sinhala model (SinhalaVITS-TTS-F1) was tried here instead of
+gTTS's Sinhala voice, which real listening tests confirmed is genuinely
+unintelligible. The dedicated model sounded "very good" in the same real
+listening test -- but its dependency stack (torch/torchaudio/torchcodec/
+coqui-tts, plus a ~950MB checkpoint) pushed this app over Streamlit
+Community Cloud's free-tier resource limits in production and took the app
+down. Reverted back to gTTS-only for Sinhala to restore service. The
+integration is fully documented (code, real test results, exact dependency
+list) in project memory if this gets revisited on a plan/host with more
+headroom -- don't rebuild it from scratch.
 
-Volume control: applied uniformly after synthesis regardless of which engine
-produced the audio, via ffmpeg (not pydub, which depends on the stdlib
-`audioop` module removed in Python 3.13+).
+Volume control: gTTS has no volume parameter, so this renders at gTTS's
+default level via a temp file, then applies a dB gain by shelling out to
+ffmpeg directly -- not pydub, which depends on the stdlib `audioop` module
+removed in Python 3.13+.
 
 Setup:
     pip install gtts
     ffmpeg must be on PATH
-    (Sinhala path additionally needs coqui-tts[codec] and torchaudio -- see
-    requirements.txt; downloads its own model weights on first real use, see
-    sinhala_vits.py for why)
 """
 
 import shutil
@@ -35,8 +36,6 @@ import time
 from pathlib import Path
 
 from gtts import gTTS
-
-from professional.sinhala_vits import synthesize_sinhala
 
 VOICES = {
     "us": "com",       # United States
@@ -49,38 +48,26 @@ VOICES = {
 }
 
 
-def _synthesize_gtts(text, language, voice, retries=3):
+def synthesize_audio(text, language, out_path, voice="us", volume_db=0.0, retries=3):
+    """Generate speech for `text`, apply accent (`voice`, English only) and
+    volume (`volume_db`, positive = louder / negative = quieter), save as MP3."""
+    target = Path(out_path)
+    target.parent.mkdir(parents=True, exist_ok=True)
     tld = VOICES.get(voice, "com") if language == "en" else "com"  # tld only affects English
+
     last_error = None
     for attempt in range(1, retries + 1):
         try:
             with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp:
                 gTTS(text=text, lang=language, tld=tld).save(tmp.name)
-                return tmp.name
+                tmp_path = tmp.name
+            break
         except Exception as e:
             last_error = e
             if attempt < retries:
                 time.sleep(1.5)
-    raise RuntimeError(f"gTTS failed after {retries} attempts: {last_error}")
-
-
-def synthesize_audio(text, language, out_path, voice="us", volume_db=0.0, retries=3):
-    """Generate speech for `text`, apply accent (`voice`, English only) and
-    volume (`volume_db`, positive = louder / negative = quieter), save as MP3.
-    Sinhala routes through SinhalaVITS (see module docstring), with an
-    automatic gTTS fallback if that fails."""
-    target = Path(out_path)
-    target.parent.mkdir(parents=True, exist_ok=True)
-
-    tmp_path = None
-    if language == "si":
-        try:
-            tmp_path = synthesize_sinhala(text)
-        except Exception as e:
-            print(f"SinhalaVITS synthesis failed ({e!r}) -- falling back to gTTS for: {text!r}")
-
-    if tmp_path is None:
-        tmp_path = _synthesize_gtts(text, language, voice, retries=retries)
+    else:
+        raise RuntimeError(f"gTTS failed after {retries} attempts: {last_error}")
 
     try:
         if volume_db:
@@ -96,7 +83,8 @@ def synthesize_audio(text, language, out_path, voice="us", volume_db=0.0, retrie
             # filesystems/mounts. shutil.move() does the same fast rename when
             # possible but transparently falls back to copy+delete across a
             # filesystem boundary -- confirmed as a real failure in production,
-            # not a hypothetical.
+            # not a hypothetical. This fix is independent of the Sinhala revert
+            # above and stays regardless.
             shutil.move(tmp_path, target)
     finally:
         Path(tmp_path).unlink(missing_ok=True)

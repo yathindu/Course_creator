@@ -530,20 +530,11 @@ voice, volume_db = "us", 0.0
 if kind == "audio":
     with st.container(border=True):
         st.subheader("🔊 Audio options")
-        if language == "si":
-            # Sinhala has no accent picker because it doesn't use gTTS at all -- routes
-            # through a dedicated Sinhala voice model (sinhala_vits.py) automatically,
-            # no choice to make. Said explicitly here so this doesn't read as "nothing
-            # happens for Sinhala" just because there's no dropdown to interact with.
-            st.caption("🇱🇰 Sinhala audio uses a dedicated Sinhala voice model, not gTTS, "
-                       "for real intelligibility -- applied automatically, no voice choice needed.")
-            volume_db = st.slider("Volume adjustment (dB)", -20.0, 20.0, 0.0, step=1.0)
-        else:
-            acol1, acol2 = st.columns(2)
-            voice = acol1.selectbox(
-                "Voice / accent", ["us", "uk", "australia", "india", "canada", "ireland", "south_africa"],
-                help="English accent via gTTS.")
-            volume_db = acol2.slider("Volume adjustment (dB)", -20.0, 20.0, 0.0, step=1.0)
+        acol1, acol2 = st.columns(2)
+        voice = acol1.selectbox(
+            "Voice / accent", ["us", "uk", "australia", "india", "canada", "ireland", "south_africa"],
+            help="English accent via gTTS. Ignored for Sinhala (only one voice available).")
+        volume_db = acol2.slider("Volume adjustment (dB)", -20.0, 20.0, 0.0, step=1.0)
 
 
 def _build_generate_call(module, out_root, video_kwargs_supported):
