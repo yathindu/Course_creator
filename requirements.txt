@@ -19,3 +19,8 @@ torch==2.13.0
 transformers==5.15.0
 fastapi==0.141.1
 uvicorn[standard]==0.52.0
+
+# Sinhala TTS (sinhala_vits.py) -- gTTS's Sinhala voice was tested and found
+# unintelligible by a real listener, these replace it for Sinhala only.
+torchaudio==2.11.0
+coqui-tts[codec]==0.27.5

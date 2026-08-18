@@ -1,30 +1,41 @@
 """
-Shared gTTS-based audio synthesis, used by both generate_lesson_media.py and
-openrouter_pipeline.py's generate_audio tools (gTTS is free regardless of
-platform, so this lives in one place instead of being duplicated).
+Shared audio synthesis, used by both generate_lesson_media.py and
+openrouter_pipeline.py's generate_audio tools.
 
-Voice/accent control: gTTS has no distinct named voices, but its `tld`
-parameter selects which Google Translate regional domain serves the request,
-producing audibly different English accents (see VOICES below). Sinhala only
-has one voice regardless of tld.
+English audio uses gTTS (free, one call, "voice" picks an accent via its
+`tld` param -- see VOICES below).
 
-Volume control: gTTS has no volume parameter, so this renders at gTTS's
-default level via a temp file, then applies a dB gain by shelling out to
-ffmpeg directly -- not pydub, which depends on the stdlib `audioop` module
-removed in Python 3.13+.
+Sinhala audio uses a dedicated model, SinhalaVITS-TTS-F1 (see
+sinhala_vits.py), not gTTS. gTTS's Sinhala voice was tested and found
+genuinely unintelligible by a real listener -- not a style preference, an
+actual comprehension failure -- so this is a hard swap for Sinhala only, not
+an option, not something the `voice` parameter toggles. If SinhalaVITS fails
+for any reason (its dependency stack is real added weight: torch/torchaudio/
+torchcodec/coqui-tts, plus a lazy ~950MB checkpoint download on first use),
+this falls back to gTTS automatically rather than failing the whole
+generation -- gTTS's Sinhala is still technically speech, just not good
+speech, so a fallback beats a hard error.
+
+Volume control: applied uniformly after synthesis regardless of which engine
+produced the audio, via ffmpeg (not pydub, which depends on the stdlib
+`audioop` module removed in Python 3.13+).
 
 Setup:
     pip install gtts
     ffmpeg must be on PATH
+    (Sinhala path additionally needs coqui-tts[codec] and torchaudio -- see
+    requirements.txt; downloads its own model weights on first real use, see
+    sinhala_vits.py for why)
 """
 
-import shutil
 import subprocess
 import tempfile
 import time
 from pathlib import Path
 
 from gtts import gTTS
+
+from professional.sinhala_vits import synthesize_sinhala
 
 VOICES = {
     "us": "com",       # United States
@@ -37,26 +48,38 @@ VOICES = {
 }
 
 
-def synthesize_audio(text, language, out_path, voice="us", volume_db=0.0, retries=3):
-    """Generate speech for `text`, apply accent (`voice`, English only) and
-    volume (`volume_db`, positive = louder / negative = quieter), save as MP3."""
-    target = Path(out_path)
-    target.parent.mkdir(parents=True, exist_ok=True)
+def _synthesize_gtts(text, language, voice, retries=3):
     tld = VOICES.get(voice, "com") if language == "en" else "com"  # tld only affects English
-
     last_error = None
     for attempt in range(1, retries + 1):
         try:
             with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp:
                 gTTS(text=text, lang=language, tld=tld).save(tmp.name)
-                tmp_path = tmp.name
-            break
+                return tmp.name
         except Exception as e:
             last_error = e
             if attempt < retries:
                 time.sleep(1.5)
-    else:
-        raise RuntimeError(f"gTTS failed after {retries} attempts: {last_error}")
+    raise RuntimeError(f"gTTS failed after {retries} attempts: {last_error}")
+
+
+def synthesize_audio(text, language, out_path, voice="us", volume_db=0.0, retries=3):
+    """Generate speech for `text`, apply accent (`voice`, English only) and
+    volume (`volume_db`, positive = louder / negative = quieter), save as MP3.
+    Sinhala routes through SinhalaVITS (see module docstring), with an
+    automatic gTTS fallback if that fails."""
+    target = Path(out_path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+
+    tmp_path = None
+    if language == "si":
+        try:
+            tmp_path = synthesize_sinhala(text)
+        except Exception as e:
+            print(f"SinhalaVITS synthesis failed ({e!r}) -- falling back to gTTS for: {text!r}")
+
+    if tmp_path is None:
+        tmp_path = _synthesize_gtts(text, language, voice, retries=retries)
 
     try:
         if volume_db:
@@ -66,13 +89,7 @@ def synthesize_audio(text, language, out_path, voice="us", volume_db=0.0, retrie
                 check=True,
             )
         else:
-            # Path.replace()/os.rename() fails with EXDEV ("Invalid cross-device
-            # link") when the OS temp dir and the target are on different
-            # filesystems -- confirmed as a real failure on Streamlit Cloud, where
-            # tempfile's default dir (/tmp) is a separate mount from the app's
-            # working directory. shutil.move() falls back to copy+delete when a
-            # plain rename isn't possible, so it works in both cases.
-            shutil.move(tmp_path, target)
+            Path(tmp_path).replace(target)
     finally:
         Path(tmp_path).unlink(missing_ok=True)
 
