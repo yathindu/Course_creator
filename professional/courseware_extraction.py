@@ -357,12 +357,17 @@ Give every activity an id prefixed with "{lesson_id}_a" plus a number (e.g. "{le
 the id must always be plain ASCII (lowercase English letters, digits, underscores only), even
 though the title/instructions/etc above are in {medium_language}. Also give a short title and
 clear instructions.
-Leave every image/audio/video field unset -- those are assigned separately, not by you.
-
-Every field marked REQUIRED above must be filled in, non-empty, and structurally correct for
-every activity you generate -- never leave a required field null, empty, or omitted. Before
-finishing, double check every "ordering" activity's correct_order and every correct_indices list
-against the exact rules given for that type."""
+Leave every image/audio/video field unset -- those are assigned separately, not by you."""
+# A closing "every field marked REQUIRED must be filled in... double check before finishing"
+# reinforcement paragraph was tried here and REMOVED -- real user-reported regression
+# ("Generate activities" producing only 1 activity instead of 6-14). Confirmed via real LLM
+# calls: the prompt with this paragraph produced just 1 activity on repeat calls; removing
+# only this paragraph (keeping the REQUIRED/worked-example hints in ACTIVITY_TYPE_HINTS
+# above, which are unaffected) produced 13-14 activities across 3 separate real trials.
+# Genuine LLM run-to-run variance is real here (temperature=0.4, not 0) so a single sample
+# either direction wouldn't be conclusive -- this was checked across multiple calls, not one.
+# Don't re-add a "double check"/"before finishing" style instruction here without the same
+# multi-trial check.
 
 _activities_prompt = ChatPromptTemplate.from_messages([("system", ACTIVITIES_SYSTEM)])
 
@@ -403,11 +408,11 @@ Generate exactly one activity of type "{activity_type}". Required fields for thi
 {type_hint}
 
 Give it the id "{activity_id}" exactly, a short title, and clear instructions. Leave every
-image/audio/video field unset -- those are assigned separately, not by you.
-
-Every field marked REQUIRED above must be filled in, non-empty, and structurally correct --
-never leave a required field null, empty, or omitted. If this is an "ordering" activity, double
-check correct_order against the exact rule given above before finishing."""
+image/audio/video field unset -- those are assigned separately, not by you."""
+# Same "double check before finishing" closing removed here as in ACTIVITIES_SYSTEM above --
+# didn't reproduce the activity-count regression in a real test of this specific prompt, but
+# it's the same instruction pattern that broke the other prompt, so it's not kept just because
+# this one test happened not to show it.
 
 _single_activity_prompt = ChatPromptTemplate.from_messages([("system", SINGLE_ACTIVITY_SYSTEM)])
 
