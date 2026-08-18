@@ -28,6 +28,7 @@ Setup:
     sinhala_vits.py for why)
 """
 
+import shutil
 import subprocess
 import tempfile
 import time
@@ -89,7 +90,14 @@ def synthesize_audio(text, language, out_path, voice="us", volume_db=0.0, retrie
                 check=True,
             )
         else:
-            Path(tmp_path).replace(target)
+            # Not Path.replace() -- that's a plain os.rename(), which raises
+            # "Invalid cross-device link" (EXDEV) on Streamlit Cloud, where the
+            # system temp dir and this app's working directory are different
+            # filesystems/mounts. shutil.move() does the same fast rename when
+            # possible but transparently falls back to copy+delete across a
+            # filesystem boundary -- confirmed as a real failure in production,
+            # not a hypothetical.
+            shutil.move(tmp_path, target)
     finally:
         Path(tmp_path).unlink(missing_ok=True)
 
