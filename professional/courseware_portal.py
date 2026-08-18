@@ -46,7 +46,7 @@ from professional.courseware_extraction import (
     paraphrase_lesson,
     resolve_language,
 )
-from professional.courseware_schema import GeneratedLesson, validate_lesson
+from professional.courseware_schema import GeneratedLesson, prune_lesson_fields, validate_lesson
 
 # Anchored to this file's own package dir, not cwd -- the unified app launches from
 # unified_courses/ so both student/ and professional/ packages can coexist, which
@@ -574,6 +574,12 @@ if editing_id and editing_id in st.session_state["generated_lessons"]:
             # that right before it matters, instead of leaving a permanently blank image field.
             language = resolve_language(st.session_state["course_meta"].get("medium"))
             generated = assign_media_filenames(GeneratedLesson(**lesson), language)
+            # prune_lesson_fields() also auto-repairs a missing/invalid "ordering"
+            # correct_order to the words' natural order (see courseware_schema.py) --
+            # only ran at generation/paraphrase time before, so an already-open lesson
+            # with this problem stayed stuck on the warning until fixed by hand. Running
+            # it here too means clicking Validate/Save now clears it automatically.
+            generated = prune_lesson_fields(generated)
             entry["lesson"] = lesson_to_json_dict(generated)
             return validate_lesson(generated)
 

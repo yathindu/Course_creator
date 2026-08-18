@@ -148,6 +148,18 @@ def prune_activity_fields(activity: Activity):
     for field in ("image", "audio", "video"):
         if getattr(activity, field) == "":
             setattr(activity, field, None)
+    # An "ordering" activity with a missing/invalid correct_order used to just get
+    # flagged by validate_lesson() and left for the teacher to fix by hand (setting
+    # each word's position one by one in the review screen). Auto-repairing to the
+    # words' own natural order here removes that friction for the common case --
+    # matches courseware_portal.py's own _activity_editor() fallback logic (a
+    # simple declarative sentence is often already correct in its given order),
+    # and the teacher can still see and correct it in review if it's wrong, same
+    # as any other generated content.
+    if activity.type == "ordering" and activity.words:
+        n = len(activity.words)
+        if activity.correct_order is None or sorted(activity.correct_order) != list(range(n)):
+            activity.correct_order = list(range(n))
     return activity
 
 
