@@ -285,19 +285,34 @@ def generate_lesson_skeletons(grouping: Grouping, grade, subject, medium):
 # full-lesson prompt below and in generate_single_activity()'s prompt, so the
 # two can't drift out of sync on what a type needs.
 ACTIVITY_TYPE_HINTS = {
-    "vocabulary": "word, definition, sentence (one key term from the lesson, with an example sentence)",
-    "mcq": "question, options (list of plain strings, 3-4 of them), correct_indices (1+ correct)",
+    "vocabulary": "word, definition, sentence (one key term from the lesson, with an example "
+                  "sentence that actually uses the word). All three are REQUIRED.",
+    "mcq": "question, options (list of plain strings, 3-4 of them, all distinct), correct_indices "
+           "(REQUIRED -- a non-empty list of indices into options, e.g. [0] or [0, 2]; every index "
+           "must be within range 0..len(options)-1)",
     "image_selection": 'question, options (list of {label, image} -- leave "image" as an empty '
-                        "string, it gets assigned later), correct_indices",
-    "true_false": "question, correct_answer (boolean)",
+                        "string, it gets assigned later), correct_indices (REQUIRED -- a non-empty "
+                        "list of indices into options, in range)",
+    "true_false": "question, correct_answer (REQUIRED boolean -- true or false, never omitted)",
     "fill_blank": "question (containing a blank shown as ______ or __), options (plain strings, "
-                  "one correct + distractors), correct_indices",
-    "ordering": "words (list of words/phrases to reorder), correct_order (the indices, in the "
-                "correct sequence, that reassemble them correctly)",
-    "listening": "question, options (plain strings) correct_indices -- the *correct* option's text "
-                 "is what gets read aloud to the learner, so make sure it is a short exact phrase to speak",
-    "speaking": "prompt_text (a sentence for the learner to read aloud), acceptable_answers (a few "
-                "accepted variants/capitalization/punctuation of prompt_text)",
+                  "one correct + distractors, all distinct), correct_indices (REQUIRED -- a "
+                  "non-empty list of indices into options, in range)",
+    "ordering": (
+        "words: list the words/phrases in SCRAMBLED order -- do NOT list them already in the "
+        "correct sequence, that defeats the exercise. correct_order: REQUIRED, never omit it -- "
+        "a list the same length as words, where correct_order[i] is the index into words of "
+        "whichever word belongs in position i of the correctly-ordered sentence; every index "
+        "0..len(words)-1 must appear exactly once, no repeats, no gaps. Example: if words = "
+        "[is, The, orange., carrot] and the correct sentence is The carrot is orange., then "
+        "correct_order = [1, 3, 0, 2] -- position 0 is words[1] (The), position 1 is words[3] "
+        "(carrot), position 2 is words[0] (is), position 3 is words[2] (orange.)."
+    ),
+    "listening": "question, options (plain strings), correct_indices (REQUIRED -- a non-empty "
+                 "list of indices into options, in range) -- the *correct* option's text is what "
+                 "gets read aloud to the learner, so make sure it is a short exact phrase to speak",
+    "speaking": "prompt_text (a sentence for the learner to read aloud), acceptable_answers "
+                "(REQUIRED -- a non-empty list of a few accepted variants/capitalization/"
+                "punctuation of prompt_text)",
     "video": "no extra fields beyond title/instructions -- instructions should describe what the "
              "video shows, since that's what the video-generation step reads; the video file itself "
              "is assigned automatically, not authored by you",
@@ -328,7 +343,12 @@ Give every activity an id prefixed with "{lesson_id}_a" plus a number (e.g. "{le
 the id must always be plain ASCII (lowercase English letters, digits, underscores only), even
 though the title/instructions/etc above are in {medium_language}. Also give a short title and
 clear instructions. Match vocabulary and sentence complexity to grade {grade}.
-Leave every image/audio/video field unset -- those are assigned separately, not by you."""
+Leave every image/audio/video field unset -- those are assigned separately, not by you.
+
+Every field marked REQUIRED above must be filled in, non-empty, and structurally correct for
+every activity you generate -- never leave a required field null, empty, or omitted. Before
+finishing, double check every "ordering" activity's correct_order and every correct_indices list
+against the exact rules given for that type."""
 
 _activities_prompt = ChatPromptTemplate.from_messages([("system", ACTIVITIES_SYSTEM)])
 
@@ -368,7 +388,11 @@ Generate exactly one activity of type "{activity_type}". Required fields for thi
 
 Give it the id "{activity_id}" exactly, a short title, and clear instructions. Match vocabulary
 and sentence complexity to grade {grade}. Leave every image/audio/video field unset --
-those are assigned separately, not by you."""
+those are assigned separately, not by you.
+
+Every field marked REQUIRED above must be filled in, non-empty, and structurally correct --
+never leave a required field null, empty, or omitted. If this is an "ordering" activity, double
+check correct_order against the exact rule given above before finishing."""
 
 _single_activity_prompt = ChatPromptTemplate.from_messages([("system", SINGLE_ACTIVITY_SYSTEM)])
 
@@ -498,7 +522,11 @@ Rules, strict:
 - Reword sentence structure, instructions, and phrasing -- do not copy the original wording.
 - Do NOT change: activity "type", "id", the number of items in "options"/"words", which
   option(s) are correct ("correct_indices"/"correct_answer"/"correct_order" must still be
-  correct after your rewrite), or any *_url field.
+  correct after your rewrite), or any image/audio/video field.
+- For an "ordering" activity specifically: do NOT reword the individual "words" entries at all --
+  only reword its title/instructions. Rewording the words themselves risks silently invalidating
+  correct_order (which indexes into the exact original words), and the whole point of the
+  exercise is reassembling those exact tokens.
 - Do NOT change the core subject/vocabulary word of a "vocabulary" activity (its media depends
   on that exact word) -- reword its definition/sentence only.
 - Keep the same language as the input.
