@@ -391,9 +391,9 @@ def generate_lesson_activities(lesson: LessonSkeleton, source_text, grade, subje
 
 # ---------------------------------------------------------------------------
 # Alternate step 4: verbatim transcription of a real paper's questions, instead of
-# inventing new content inspired by source_text -- used by student/paper_extraction.py
-# ("Paper to Course"), where a teacher has a real exam/worksheet and wants those EXACT
-# questions turned into a course, not new AI-authored ones.
+# inventing new content inspired by source_text -- used by courseware_portal.py's
+# "Course from an exam paper (verbatim)" mode, where a teacher has a real exam/worksheet
+# and wants those exact questions turned into a course, not new AI-authored ones.
 # ---------------------------------------------------------------------------
 VERBATIM_ACTIVITIES_SYSTEM = """You are transcribing a real exam/worksheet paper into structured
 activities for a grade {grade} {subject} course (medium: {medium}). All learner-facing text you

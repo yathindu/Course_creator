@@ -1,9 +1,9 @@
-"""Shared "review & edit a generated lesson" UI -- factored out of courseware_portal.py so
-student/paper_extraction.py can reuse the exact same review/validate/save screen instead of
-duplicating ~150 lines of Streamlit widget code within this package. (Not shared with
-professional/ -- that package keeps its own literal copy, same reasoning as everywhere else
-in this project: no import relationship between the two packages, to avoid sys.modules
-collisions on identically-named modules.)
+"""Shared "review & edit a generated lesson" UI -- factored out of courseware_portal.py so its
+two modes (book-mode's section 3, and the "Course from an exam paper (verbatim)" mode's section
+2) can both call the exact same review/validate/save screen instead of duplicating ~150 lines of
+Streamlit widget code. (Not shared with professional/ -- that package keeps its own literal
+copy, same reasoning as everywhere else in this project: no import relationship between the two
+packages, to avoid sys.modules collisions on identically-named modules.)
 """
 
 import json
@@ -200,8 +200,8 @@ def _activity_editor(activity, key_prefix):
         # instead of leaving it totally blank, since prompt_text is always itself a valid
         # accepted answer. Same "give a sane starting point, not a blank/broken state"
         # philosophy as the ordering position editor above. Also the normal state for a
-        # freshly-transcribed paper question (see student/paper_extraction.py) -- its answer
-        # is deliberately left blank since the source paper never gave one.
+        # freshly-transcribed paper question (courseware_portal.py's "verbatim" mode) --
+        # its answer is deliberately left blank since the source paper never gave one.
         existing_answers = activity.get("acceptable_answers") or []
         default_answers = existing_answers or ([activity["prompt_text"]] if activity["prompt_text"] else [])
         answers_text = st.text_area(
@@ -216,10 +216,10 @@ def _activity_editor(activity, key_prefix):
 
 def render_lesson_review(entry, editing_id, source_text, course_meta, output_dir, heading_prefix="Review"):
     """Renders the full review/validate/Alter/add-question/save screen for one generated
-    lesson (`entry` is the {"lesson": dict, "issues": list, "altered": bool} shape both
-    courseware_portal.py and paper_extraction.py store per lesson id). Mutates `entry` in
-    place -- callers keep whatever dict/session_state structure holds it, this function
-    doesn't own storage, just the widgets."""
+    lesson (`entry` is the {"lesson": dict, "issues": list, "altered": bool} shape both of
+    courseware_portal.py's modes store per lesson id). Mutates `entry` in place -- callers
+    keep whatever dict/session_state structure holds it, this function doesn't own storage,
+    just the widgets."""
     lesson = entry["lesson"]
 
     with st.container(border=True):

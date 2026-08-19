@@ -31,7 +31,6 @@ st.set_page_config(page_title="Course Creator", page_icon="🎓", layout="center
 STUDENT_PAGES = [
     st.Page("student/app.py", title="Media Generation", icon="🎬", default=True),
     st.Page("student/courseware_portal.py", title="Course Creation", icon="📘"),
-    st.Page("student/paper_extraction.py", title="Paper to Course", icon="📄"),
 ]
 PROFESSIONAL_PAGES = [
     st.Page("professional/app.py", title="Media Generation", icon="🎬", default=True),
