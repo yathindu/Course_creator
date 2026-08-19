@@ -107,7 +107,17 @@ def _llm(model=TEXT_MODEL, temperature=0.4, max_tokens=None):
     closes its JSON, which pydantic then rejects as invalid rather than truncated-
     but-usable. An explicit cap makes that failure fast and cheap instead of a
     multi-thousand-token generation that fails anyway -- callers with large
-    expected output (activities, paraphrase) should set one."""
+    expected output (activities, paraphrase) should set one.
+
+    16000 (not the original 6000) for those large-output callers: real testing with
+    a genuinely dense Sinhala-medium lesson (a photographed grade 5 exam paper) hit
+    the OLD 6000 cap mid-generation -- Sinhala tokenizes far less efficiently than
+    English, so a legitimate multi-activity Sinhala lesson can need well more than
+    6000 tokens. That failure surfaced as a pydantic "EOF while parsing a string"
+    error (valid-looking JSON truncated mid-string), not a rate-limit error, so
+    _invoke_with_retry's retry loop didn't catch it -- confirmed via real user
+    report, not hypothetical. 16000 still comfortably catches the original runaway-
+    degenerate case (thousands of lines), just gives real content more headroom."""
     kwargs = dict(model=model, api_key=OPENROUTER_API_KEY, base_url=OPENROUTER_BASE_URL, temperature=temperature)
     if max_tokens:
         kwargs["max_tokens"] = max_tokens
@@ -359,7 +369,7 @@ _activities_prompt = ChatPromptTemplate.from_messages([("system", ACTIVITIES_SYS
 
 
 def generate_lesson_activities(lesson: LessonSkeleton, source_text, grade, subject, medium):
-    chain = _activities_prompt | _llm(max_tokens=6000).with_structured_output(GeneratedLesson)
+    chain = _activities_prompt | _llm(max_tokens=16000).with_structured_output(GeneratedLesson)
     result = _invoke_with_retry(lambda: chain.invoke({
         "lesson_title": lesson.title,
         "lesson_description": lesson.description,
@@ -377,6 +387,112 @@ def generate_lesson_activities(lesson: LessonSkeleton, source_text, grade, subje
     result.subject = subject
     result.medium = medium
     return prune_lesson_fields(result)
+
+
+# ---------------------------------------------------------------------------
+# Alternate step 4: verbatim transcription of a real paper's questions, instead of
+# inventing new content inspired by source_text -- used by student/paper_extraction.py
+# ("Paper to Course"), where a teacher has a real exam/worksheet and wants those EXACT
+# questions turned into a course, not new AI-authored ones.
+# ---------------------------------------------------------------------------
+VERBATIM_ACTIVITIES_SYSTEM = """You are transcribing a real exam/worksheet paper into structured
+activities for a grade {grade} {subject} course (medium: {medium}). All learner-facing text you
+copy must stay in {medium_language} exactly as written in the source -- never translate it.
+
+This is transcription, NOT content generation: every question you produce must be copied,
+word-for-word, from the source text below. Do not invent a single new question, do not paraphrase,
+do not reorder unrelated content into a question, and do not skip a question that's clearly
+present. If the source text contains no legible questions at all, return zero activities rather
+than inventing any.
+
+Source text (the paper, exactly as extracted):
+{source_text}
+
+For each question in the source, in the order it appears, create one activity of the matching type:
+- Multiple-choice question (a stem plus several lettered/numbered options) -> type "mcq".
+  question = the stem itself, copied exactly. options = every option's exact text, one per list
+  entry, in their original order.
+- Fill-in-the-blank / short written-answer question with no options given in the source -> type
+  "speaking". prompt_text = the sentence exactly as printed, including whatever blank marker the
+  source uses (e.g. "...." or "______"), exactly as-is.
+- True/false statement -> type "true_false". question = the exact statement, copied verbatim.
+- An "arrange these words/phrases into the correct order" question -> type "ordering". words =
+  the words/phrases from the source; correct_order = the grammatically correct sequence (this one
+  you may work out yourself -- it's a matter of grammar, not subject-matter knowledge the source
+  doesn't confirm).
+- Anything else that doesn't cleanly fit one of the above (a definition/vocabulary prompt, an
+  essay question, instructions-only text) -> skip it rather than forcing it into the wrong shape.
+
+question/options/prompt_text/words are the entire point of this task -- get every one of them
+filled in with the real copied text, never left blank. (Whatever you put in correct_indices/
+correct_answer/acceptable_answers is discarded and overwritten afterward regardless of what you
+write there, so don't spend effort on those -- put all of your attention on transcribing
+question/options/prompt_text/words correctly instead.)
+
+Worked example -- if the source contains:
+    "3. What is 2 + 2?
+    (a) 3   (b) 4   (c) 5   (d) 6"
+the resulting activity must be: type "mcq", question "What is 2 + 2?", options
+["3", "4", "5", "6"].
+
+Give every activity an id prefixed with "{lesson_id}_a" plus a number (e.g. "{lesson_id}_a1") --
+plain ASCII only, even though the copied text is in {medium_language}. Give each a short title
+(e.g. "Question 3") and brief instructions (e.g. "Choose the correct answer" if the source implies
+that). Leave every image/audio/video field unset."""
+
+_verbatim_activities_prompt = ChatPromptTemplate.from_messages([("system", VERBATIM_ACTIVITIES_SYSTEM)])
+
+
+def _clear_answer_keys(lesson: GeneratedLesson):
+    """Enforced in code, not just prompted -- an LLM told "don't guess the answer" can still
+    guess anyway. Exam/worksheet papers essentially never include an answer key (confirmed
+    against a real photographed grade 5 exam paper), and a wrong guess would reach a teacher
+    looking just as authoritative as a right one unless they independently re-solved every
+    question themselves. This is the actual guarantee that answers are never fabricated; the
+    prompt's instruction above is only the first line of defense, not the only one."""
+    for activity in lesson.activities:
+        if activity.type in ("mcq", "fill_blank", "listening", "image_selection"):
+            activity.correct_indices = []
+        elif activity.type == "true_false":
+            activity.correct_answer = None
+        elif activity.type == "speaking":
+            activity.acceptable_answers = []
+    return lesson
+
+
+def generate_paper_lesson(source_text, grade, subject, medium, title):
+    """Turns a real paper's questions directly into one lesson, preserving their exact wording --
+    distinct from generate_lesson_activities() above (which invents fresh activities *inspired
+    by* source_text rather than transcribing it). No grouping/lesson-skeleton steps needed first:
+    one paper becomes one lesson directly.
+
+    temperature=0, not this module's usual 0.4 default -- confirmed via real repeated testing
+    that 0.4 made this specific call unreliable in a way generate_lesson_activities() (which
+    also uses 0.4) isn't: across 3 real calls on the same real paper, one produced a
+    correctly-filled lesson, one left every mcq's "question" field blank (options were fine --
+    just the stem silently dropped), and one degenerated into the same "thousands of near-blank
+    lines that never close the JSON" failure _llm()'s max_tokens docstring warns about.
+    Content *generation* benefits from temperature's variety; this call has zero creative
+    latitude at all (it's supposed to copy the source text exactly, not vary it), so there's no
+    tradeoff to accept here -- temperature=0 is strictly better for a pure transcription task."""
+    lesson_id = slugify(title)
+    chain = _verbatim_activities_prompt | _llm(temperature=0, max_tokens=16000).with_structured_output(GeneratedLesson)
+    result = _invoke_with_retry(lambda: chain.invoke({
+        "source_text": source_text,
+        "grade": grade,
+        "subject": subject,
+        "medium": medium,
+        "medium_language": medium_language(medium),
+        "lesson_id": lesson_id,
+    }))
+    result.id = lesson_id
+    result.title = title
+    result.description = f"Transcribed from an uploaded paper ({subject}, grade {grade})."
+    result.grade = grade
+    result.subject = subject
+    result.medium = medium
+    result = prune_lesson_fields(result)
+    return _clear_answer_keys(result)
 
 
 SINGLE_ACTIVITY_SYSTEM = """You are writing ONE new activity to add to an existing lesson of a grade
@@ -545,7 +661,7 @@ _paraphrase_prompt = ChatPromptTemplate.from_messages([("system", PARAPHRASE_SYS
 
 
 def paraphrase_lesson(lesson: GeneratedLesson):
-    chain = _paraphrase_prompt | _llm(temperature=0.6, max_tokens=6000).with_structured_output(GeneratedLesson)
+    chain = _paraphrase_prompt | _llm(temperature=0.6, max_tokens=16000).with_structured_output(GeneratedLesson)
     result = _invoke_with_retry(lambda: chain.invoke({"lesson_json": lesson.model_dump_json(indent=2)}))
     result.id = lesson.id
     if len(result.activities) != len(lesson.activities):

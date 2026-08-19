@@ -112,7 +112,19 @@ def _llm(model=TEXT_MODEL, temperature=0.4, max_tokens=None):
     closes its JSON, which pydantic then rejects as invalid rather than truncated-
     but-usable. An explicit cap makes that failure fast and cheap instead of a
     multi-thousand-token generation that fails anyway -- callers with large
-    expected output (activities, paraphrase) should set one."""
+    expected output (activities, paraphrase) should set one.
+
+    16000 (not the original 6000) for those large-output callers: real testing with
+    a genuinely dense Sinhala-medium lesson (a photographed grade 5 exam paper, via
+    the student/ package which shares this logic) hit the OLD 6000 cap mid-
+    generation -- Sinhala tokenizes far less efficiently than English, so a
+    legitimate multi-activity Sinhala lesson can need well more than 6000 tokens.
+    That failure surfaced as a pydantic "EOF while parsing a string" error (valid-
+    looking JSON truncated mid-string), not a rate-limit error, so
+    _invoke_with_retry's retry loop didn't catch it -- confirmed via real user
+    report, not hypothetical. 16000 still comfortably catches the original runaway-
+    degenerate case (thousands of lines), just gives real content more headroom.
+    Kept in sync with student/courseware_extraction.py's identical fix."""
     kwargs = dict(model=model, api_key=OPENROUTER_API_KEY, base_url=OPENROUTER_BASE_URL, temperature=temperature)
     if max_tokens:
         kwargs["max_tokens"] = max_tokens
@@ -373,7 +385,7 @@ _activities_prompt = ChatPromptTemplate.from_messages([("system", ACTIVITIES_SYS
 
 
 def generate_lesson_activities(lesson: LessonSkeleton, source_text, skill_area, subject, medium):
-    chain = _activities_prompt | _llm(max_tokens=6000).with_structured_output(GeneratedLesson)
+    chain = _activities_prompt | _llm(max_tokens=16000).with_structured_output(GeneratedLesson)
     result = _invoke_with_retry(lambda: chain.invoke({
         "lesson_title": lesson.title,
         "lesson_description": lesson.description,
@@ -562,7 +574,7 @@ _paraphrase_prompt = ChatPromptTemplate.from_messages([("system", PARAPHRASE_SYS
 
 
 def paraphrase_lesson(lesson: GeneratedLesson):
-    chain = _paraphrase_prompt | _llm(temperature=0.6, max_tokens=6000).with_structured_output(GeneratedLesson)
+    chain = _paraphrase_prompt | _llm(temperature=0.6, max_tokens=16000).with_structured_output(GeneratedLesson)
     result = _invoke_with_retry(lambda: chain.invoke({"lesson_json": lesson.model_dump_json(indent=2)}))
     result.id = lesson.id
     if len(result.activities) != len(lesson.activities):
