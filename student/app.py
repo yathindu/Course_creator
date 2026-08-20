@@ -442,6 +442,14 @@ if kind == "image":
                         st.session_state.pop("batch_results", None)
                         st.session_state.pop("batch_key", None)
                         st.success(f"Approved and saved all {len(batch_results)} options.")
+                        # The "X/N assets approved" progress bar above is computed from files on disk
+                        # at the *top* of this script, before this button handler runs -- without a
+                        # rerun it stays stuck showing last click's count until some unrelated later
+                        # interaction happens to trigger one. Confirmed as a real bug via real testing
+                        # (approved an asset, watched the progress bar still read the pre-approval
+                        # count even though approvals.json and the file on disk were both already
+                        # correct).
+                        st.rerun()
 
         approvals_path = final_root / "approvals.json"
         if approvals_path.exists():
@@ -661,6 +669,9 @@ if "hf_result" in st.session_state:
 
             st.session_state["approved"] = str(final_path)
             st.success(f"Approved and saved to {final_path} (source: {chosen_label})")
+            # See the batch-approve handler above for why this rerun is needed -- same
+            # progress-bar staleness bug, confirmed via real testing on this exact button.
+            st.rerun()
 
 if "approved" in st.session_state:
     st.caption(f"Currently approved for this activity: {st.session_state['approved']}")
@@ -805,6 +816,9 @@ if kind == "image":
                         _clear_draft_text(lesson["id"], motion_draft_key)
                         st.session_state["approved_animation"] = str(final_anim_path)
                         st.success(f"Approved and saved to {final_anim_path}")
+                        # See the image Approve & Save handler above for why this rerun is needed --
+                        # same progress-bar staleness bug.
+                        st.rerun()
 
             if "approved_animation" in st.session_state:
                 approved_anim_path = Path(st.session_state["approved_animation"])
