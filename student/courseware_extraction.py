@@ -274,6 +274,43 @@ def grade_band_context(grade):
     return f"Grade {grade} falls in Sri Lanka's {stage} stage. {guidance}"
 
 
+def suggested_teacher_preference(grade):
+    """A starting-point (tone, comment) pair for the Teacher preference fields in
+    app.py, keyed off the same grade bands as grade_band_context() above -- these
+    feed personalization.py's *style* rewrite (image/video mood, narration tone),
+    a different concern from grade_band_context()'s *vocabulary complexity*
+    guidance, so kept as a separate function rather than folded into it. Purely a
+    suggested default a teacher can accept or overwrite via app.py's "Suggest for
+    this grade" button -- never applied automatically, since a teacher's own typed
+    preference should never be silently clobbered by a grade change."""
+    grade = int(grade)
+    if grade <= 5:
+        return (
+            "playful, warm, and encouraging",
+            "Keep imagery bright and non-scary. Prefer simple, short sentences for "
+            "anything read aloud.",
+        )
+    if grade <= 9:
+        return (
+            "friendly but a bit more grown-up -- encouraging without being childish",
+            "Mild real-world detail and simple diagrams are fine. Avoid babyish "
+            "imagery, but keep the overall feel upbeat and approachable.",
+        )
+    if grade <= 11:
+        return (
+            "clear, respectful, and exam-focused -- motivating without being "
+            "patronizing",
+            "Keep visuals realistic and straightforward, not cartoonish -- this age "
+            "group tends to find childish styling off-putting. Favor clarity over "
+            "decoration.",
+        )
+    return (
+        "professional and direct -- treat the student as a young adult",
+        "Avoid childish or cartoonish styling entirely. Imagery and narration "
+        "should feel closer to how a textbook or lecture would present it.",
+    )
+
+
 # ---------------------------------------------------------------------------
 # Step 2: groupings (chapters/modules) -- portal-internal organization only,
 # never reaches the exported lesson.json.

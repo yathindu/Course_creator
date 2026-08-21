@@ -42,7 +42,7 @@ except st.errors.StreamlitSecretNotFoundError:
 import student.generate_lesson_media as hf
 import student.openrouter_pipeline as orp
 from student.image_processing import BACKGROUND_COLORS, flatten_on_background, has_transparency
-from student.courseware_extraction import grade_band_context
+from student.courseware_extraction import grade_band_context, suggested_teacher_preference
 from student.personalization import is_sinhala, load_teacher_profile, personalize, translate_to_english
 
 # Data (drafts/, generated_content/, teacher_profile.json, etc.) lives next to this
@@ -138,8 +138,19 @@ with st.container(border=True):
         "Gender target", _GENDER_TARGET_OPTIONS,
         index=_GENDER_TARGET_OPTIONS.index(_default_gender_target) if _default_gender_target in _GENDER_TARGET_OPTIONS else 2,
     )
-    tone = st.text_input("Tone", _default_profile.get("tone", ""))
-    comment = st.text_area("Comment", _default_profile.get("comment", ""))
+    if st.button("💡 Suggest tone/comment for this grade"):
+        # Fills in a grade-appropriate starting point but never runs on its own --
+        # only on an explicit click, so changing the Grade dropdown alone can never
+        # silently overwrite tone/comment a teacher already wrote. Set session_state
+        # *before* the widgets below are created, then rerun so they pick it up
+        # (the usual Streamlit pattern for a button that edits another widget).
+        _suggested_tone, _suggested_comment = suggested_teacher_preference(grade_pref)
+        st.session_state["teacher_pref_tone"] = _suggested_tone
+        st.session_state["teacher_pref_comment"] = _suggested_comment
+        st.rerun()
+
+    tone = st.text_input("Tone", _default_profile.get("tone", ""), key="teacher_pref_tone")
+    comment = st.text_area("Comment", _default_profile.get("comment", ""), key="teacher_pref_comment")
     teacher_profile = {"grade": int(grade_pref), "gender_target": gender_target, "tone": tone, "comment": comment}
 
     # Autosave: write back to teacher_profile.json on any change, so a crash/restart doesn't
