@@ -219,8 +219,9 @@ if mode == "Course from an exam paper (verbatim)":
 
     with st.expander("1. Paper", expanded=not st.session_state["paper_source_text"]):
         pcol1, pcol2, pcol3 = st.columns(3)
-        p_grade = pcol1.number_input(
-            "Grade", min_value=1, max_value=13, value=_default_grade_pref(), key="paper_grade",
+        p_grade = pcol1.selectbox(
+            "Grade", list(range(1, 14)), index=_default_grade_pref() - 1,
+            format_func=lambda g: f"Grade {g}", key="paper_grade",
             help=grade_band_context(st.session_state.get("paper_grade", _default_grade_pref())),
         )
         p_subject = pcol2.text_input("Subject", value="", key="paper_subject")
@@ -322,8 +323,9 @@ col_source, col_chat = st.columns([2, 3])
 with col_source:
     with st.expander("1. Source material", expanded=not st.session_state["source_text"]):
         col1, col2, col3 = st.columns(3)
-        grade = col1.number_input(
-            "Grade", min_value=1, max_value=13, value=_default_grade_pref(), key="course_grade",
+        grade = col1.selectbox(
+            "Grade", list(range(1, 14)), index=_default_grade_pref() - 1,
+            format_func=lambda g: f"Grade {g}", key="course_grade",
             help=grade_band_context(st.session_state.get("course_grade", _default_grade_pref())),
         )
         subject = col2.text_input("Subject", value="english")

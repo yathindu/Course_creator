@@ -127,9 +127,10 @@ with st.container(border=True):
     st.subheader("🧑‍🏫 Teacher preference")
     _default_profile = load_teacher_profile(_BASE_DIR / "teacher_profile.json") if (_BASE_DIR / "teacher_profile.json").exists() else {}
     pcol1, pcol2 = st.columns(2)
-    grade_pref = pcol1.number_input(
-        "Grade", min_value=1, max_value=13, value=int(_default_profile.get("grade", 2)),
-        key="teacher_pref_grade", help=grade_band_context(st.session_state.get("teacher_pref_grade", 2)),
+    grade_pref = pcol1.selectbox(
+        "Grade", list(range(1, 14)), index=int(_default_profile.get("grade", 2)) - 1,
+        format_func=lambda g: f"Grade {g}", key="teacher_pref_grade",
+        help=grade_band_context(st.session_state.get("teacher_pref_grade", 2)),
     )
     _GENDER_TARGET_OPTIONS = ["male", "female", "male+female"]
     _default_gender_target = _default_profile.get("gender_target", "male+female")
