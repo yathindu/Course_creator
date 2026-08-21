@@ -131,7 +131,12 @@ with st.container(border=True):
         "Grade", min_value=1, max_value=13, value=int(_default_profile.get("grade", 2)),
         key="teacher_pref_grade", help=grade_band_context(st.session_state.get("teacher_pref_grade", 2)),
     )
-    gender_target = pcol2.text_input("Gender target", _default_profile.get("gender_target", "neutral"))
+    _GENDER_TARGET_OPTIONS = ["male", "female", "male+female"]
+    _default_gender_target = _default_profile.get("gender_target", "male+female")
+    gender_target = pcol2.selectbox(
+        "Gender target", _GENDER_TARGET_OPTIONS,
+        index=_GENDER_TARGET_OPTIONS.index(_default_gender_target) if _default_gender_target in _GENDER_TARGET_OPTIONS else 2,
+    )
     tone = st.text_input("Tone", _default_profile.get("tone", ""))
     comment = st.text_area("Comment", _default_profile.get("comment", ""))
     teacher_profile = {"grade": int(grade_pref), "gender_target": gender_target, "tone": tone, "comment": comment}
