@@ -223,11 +223,65 @@ def extract_text(source_paths, on_page=None):
 
 
 # ---------------------------------------------------------------------------
+# Sri Lankan school system: grade bands with genuinely different curriculum
+# stages, each needing a different register/vocabulary/complexity target from
+# the LLM -- "grade 2" and "grade 12" are not the same instruction with a
+# different number spliced in. Bands match the actual national structure:
+# Primary, Junior Secondary, Senior Secondary (G.C.E. Ordinary Level, examined
+# at the end of grade 11), and Collegiate (G.C.E. Advanced Level, examined at
+# the end of grade 13, where students specialize into a stream -- Science/
+# Commerce/Arts/Technology -- rather than a single shared syllabus).
+# ---------------------------------------------------------------------------
+def grade_band_context(grade):
+    """One ready-to-splice guidance paragraph, keyed off which stage of the Sri
+    Lankan school system `grade` falls into. Vocabulary, register, and assumed
+    prior knowledge differ sharply across these stages, so every generation
+    prompt that writes learner-facing text should use this instead of a bare
+    "grade {grade}" number, which otherwise leaves the LLM to guess what that
+    number implies."""
+    grade = int(grade)
+    if grade <= 5:
+        stage, guidance = "Primary (grades 1-5)", (
+            "Use very short, simple sentences and everyday vocabulary only. "
+            "Explain any term a young child wouldn't already know. Favor "
+            "concrete, familiar examples (home, family, animals, play) over "
+            "abstract ones. Avoid subject-specific jargon unless the source "
+            "text itself uses it, and define it in context if so."
+        )
+    elif grade <= 9:
+        stage, guidance = "Junior Secondary (grades 6-9)", (
+            "Use moderate sentence complexity. Subject-specific terms are fine "
+            "but explain/introduce them the first time they're used rather than "
+            "assuming prior knowledge. Balance concrete examples with simple "
+            "abstract/conceptual reasoning."
+        )
+    elif grade <= 11:
+        stage, guidance = "Senior Secondary / G.C.E. Ordinary Level (grades 10-11)", (
+            "Use a formal academic register and exam-oriented phrasing, matching "
+            "how real G.C.E. O-Level questions are worded. Subject terminology "
+            "can be used freely without re-explaining basics, but keep "
+            "explanations precise and unambiguous -- this is exam-prep content."
+        )
+    else:
+        stage, guidance = "Collegiate / G.C.E. Advanced Level (grades 12-13)", (
+            "Use an advanced, subject-specialist register appropriate to A-Level "
+            "stream content (Science/Commerce/Arts/Technology). Assume strong "
+            "foundational knowledge from earlier grades -- do not re-explain "
+            "basic concepts. Use precise technical vocabulary and exam-board-"
+            "style question phrasing, at a depth appropriate to pre-university "
+            "study."
+        )
+    return f"Grade {grade} falls in Sri Lanka's {stage} stage. {guidance}"
+
+
+# ---------------------------------------------------------------------------
 # Step 2: groupings (chapters/modules) -- portal-internal organization only,
 # never reaches the exported lesson.json.
 # ---------------------------------------------------------------------------
 GROUPINGS_SYSTEM = """You are organizing a textbook's content into teaching chapters/modules for a
 grade {grade} {subject} course (medium: {medium}).
+
+{grade_band_context}
 
 Read the source content and split it into logical groupings (chapters/modules) a teacher would
 recognize -- group by topic, not by page boundaries. For each grouping give an id, a title, and a
@@ -249,6 +303,7 @@ def generate_groupings(source_text, grade, subject, medium):
     result = _invoke_with_retry(lambda: chain.invoke({
         "source_text": source_text, "grade": grade, "subject": subject,
         "medium": medium, "medium_language": medium_language(medium),
+        "grade_band_context": grade_band_context(grade),
     }))
     return result.groupings
 
@@ -258,6 +313,8 @@ def generate_groupings(source_text, grade, subject, medium):
 # ---------------------------------------------------------------------------
 LESSON_SKELETONS_SYSTEM = """You are planning lessons for one chapter/module of a grade {grade}
 {subject} course (medium: {medium}).
+
+{grade_band_context}
 
 Chapter: {grouping_title}
 Chapter content:
@@ -284,6 +341,7 @@ def generate_lesson_skeletons(grouping: Grouping, grade, subject, medium):
         "subject": subject,
         "medium": medium,
         "medium_language": medium_language(medium),
+        "grade_band_context": grade_band_context(grade),
     }))
     return result.lessons
 
@@ -340,6 +398,8 @@ ACTIVITIES_SYSTEM = """You are writing the activities for one lesson of a grade 
 course (medium: {medium}). Write all learner-facing text (title, instructions, question, word,
 definition, sentence, options, prompt_text) in {medium_language}.
 
+{grade_band_context}
+
 Lesson: {lesson_title}
 Lesson description: {lesson_description}
 Relevant source content (do not invent facts outside this):
@@ -352,7 +412,7 @@ repetitive. Available types and their required fields:
 Give every activity an id prefixed with "{lesson_id}_a" plus a number (e.g. "{lesson_id}_a1") --
 the id must always be plain ASCII (lowercase English letters, digits, underscores only), even
 though the title/instructions/etc above are in {medium_language}. Also give a short title and
-clear instructions. Match vocabulary and sentence complexity to grade {grade}.
+clear instructions. Match vocabulary and sentence complexity to the grade-band guidance above.
 Leave every image/audio/video field unset -- those are assigned separately, not by you."""
 # A closing "every field marked REQUIRED must be filled in... double check before finishing"
 # reinforcement paragraph was tried here and REMOVED -- real user-reported regression
@@ -379,6 +439,7 @@ def generate_lesson_activities(lesson: LessonSkeleton, source_text, grade, subje
         "subject": subject,
         "medium": medium,
         "medium_language": medium_language(medium),
+        "grade_band_context": grade_band_context(grade),
     }))
     result.id = lesson.id
     result.title = lesson.title
@@ -499,6 +560,8 @@ SINGLE_ACTIVITY_SYSTEM = """You are writing ONE new activity to add to an existi
 {grade} {subject} course (medium: {medium}). Write all learner-facing text (title, instructions,
 question, word, definition, sentence, options, prompt_text) in {medium_language}.
 
+{grade_band_context}
+
 Lesson: {lesson_title}
 Lesson description: {lesson_description}
 Relevant source content (do not invent facts outside this):
@@ -508,8 +571,8 @@ Generate exactly one activity of type "{activity_type}". Required fields for thi
 {type_hint}
 
 Give it the id "{activity_id}" exactly, a short title, and clear instructions. Match vocabulary
-and sentence complexity to grade {grade}. Leave every image/audio/video field unset --
-those are assigned separately, not by you."""
+and sentence complexity to the grade-band guidance above. Leave every image/audio/video field
+unset -- those are assigned separately, not by you."""
 # Same "double check before finishing" closing removed here as in ACTIVITIES_SYSTEM above --
 # didn't reproduce the activity-count regression in a real test of this specific prompt, but
 # it's the same instruction pattern that broke the other prompt, so it's not kept just because
@@ -534,6 +597,7 @@ def generate_single_activity(activity_type, activity_id, lesson_title, lesson_de
         "medium": medium,
         "medium_language": medium_language(medium),
         "type_hint": ACTIVITY_TYPE_HINTS[activity_type],
+        "grade_band_context": grade_band_context(grade),
     }))
     result.id = activity_id
     result.type = activity_type
@@ -550,6 +614,10 @@ def generate_single_activity(activity_type, activity_id, lesson_title, lesson_de
 QA_SYSTEM = """You are answering a teacher's questions about a textbook they've uploaded, for a
 grade {grade} {subject} course (medium: {medium}). Answer in {medium_language}, matching the
 book's language.
+
+{grade_band_context} You're answering the teacher, not the student, so this doesn't mean
+simplifying your own wording -- but frame explanations with this grade's curriculum scope and
+depth in mind, since that's the context the teacher is asking within.
 
 Answer ONLY using the source content below -- do not use outside knowledge, and do not invent
 facts, figures, or details that aren't in it. If the answer isn't in the source content, say so
@@ -585,6 +653,7 @@ def answer_question(question, source_text, history, grade, subject, medium):
         "question": question, "source_text": source_text, "history": lc_history,
         "grade": grade, "subject": subject, "medium": medium,
         "medium_language": medium_language(medium),
+        "grade_band_context": grade_band_context(grade),
     }))
     return result.content.strip()
 
@@ -639,6 +708,8 @@ def assign_media_filenames(lesson: GeneratedLesson, language):
 PARAPHRASE_SYSTEM = """You are rewriting lesson content to avoid reproducing a source textbook's
 exact wording, while still covering exactly the same material and staying factually identical.
 
+{grade_band_context}
+
 Rules, strict:
 - Reword sentence structure, instructions, and phrasing -- do not copy the original wording.
 - Do NOT change: activity "type", "id", the number of items in "options"/"words", which
@@ -662,7 +733,10 @@ _paraphrase_prompt = ChatPromptTemplate.from_messages([("system", PARAPHRASE_SYS
 
 def paraphrase_lesson(lesson: GeneratedLesson):
     chain = _paraphrase_prompt | _llm(temperature=0.6, max_tokens=16000).with_structured_output(GeneratedLesson)
-    result = _invoke_with_retry(lambda: chain.invoke({"lesson_json": lesson.model_dump_json(indent=2)}))
+    result = _invoke_with_retry(lambda: chain.invoke({
+        "lesson_json": lesson.model_dump_json(indent=2),
+        "grade_band_context": grade_band_context(lesson.grade),
+    }))
     result.id = lesson.id
     if len(result.activities) != len(lesson.activities):
         # The rewrite was instructed not to change activity count, but nothing enforces

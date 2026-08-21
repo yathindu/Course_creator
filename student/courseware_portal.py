@@ -51,6 +51,7 @@ from student.courseware_extraction import (
     generate_lesson_activities,
     generate_lesson_skeletons,
     generate_paper_lesson,
+    grade_band_context,
     lesson_to_json_dict,
     resolve_language,
 )
@@ -200,7 +201,10 @@ if mode == "Course from an exam paper (verbatim)":
 
     with st.expander("1. Paper", expanded=not st.session_state["paper_source_text"]):
         pcol1, pcol2, pcol3 = st.columns(3)
-        p_grade = pcol1.number_input("Grade", min_value=1, max_value=13, value=5, key="paper_grade")
+        p_grade = pcol1.number_input(
+            "Grade", min_value=1, max_value=13, value=5, key="paper_grade",
+            help=grade_band_context(st.session_state.get("paper_grade", 5)),
+        )
         p_subject = pcol2.text_input("Subject", value="", key="paper_subject")
         p_medium = pcol3.selectbox("Medium (language)", ["english", "sinhala"], key="paper_medium")
         p_title = st.text_input("Lesson title", value="", placeholder="e.g. Grade 5 Dhamma Term Test", key="paper_title")
@@ -300,7 +304,10 @@ col_source, col_chat = st.columns([2, 3])
 with col_source:
     with st.expander("1. Source material", expanded=not st.session_state["source_text"]):
         col1, col2, col3 = st.columns(3)
-        grade = col1.number_input("Grade", min_value=1, max_value=13, value=2)
+        grade = col1.number_input(
+            "Grade", min_value=1, max_value=13, value=2, key="course_grade",
+            help=grade_band_context(st.session_state.get("course_grade", 2)),
+        )
         subject = col2.text_input("Subject", value="english")
         # Constrained to exactly what the pipeline supports (gTTS "en"/"si", per
         # generate_lesson_media.py's LANGUAGE_MAP) -- a free-text field let a
