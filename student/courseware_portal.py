@@ -58,6 +58,24 @@ from student.courseware_extraction import (
 from student.courseware_review_ui import _generation_error_message, render_lesson_review
 from student.courseware_schema import validate_lesson
 
+_TEACHER_PROFILE_PATH = Path(__file__).resolve().parent / "teacher_profile.json"
+
+
+def _default_grade_pref():
+    """Pre-fills the Grade fields below with the teacher's saved preference from
+    app.py's "Teacher preference" section (teacher_profile.json's "grade" field),
+    so a teacher who mostly teaches one grade doesn't have to reset it on every new
+    course -- still just a default, freely overridable per course. Reads the file
+    directly rather than importing student.personalization's load_teacher_profile()
+    -- that module pulls in langchain_huggingface, which this portal deliberately
+    avoids (see module docstring: no torch/transformers/rembg here)."""
+    if _TEACHER_PROFILE_PATH.exists():
+        try:
+            return int(json.loads(_TEACHER_PROFILE_PATH.read_text(encoding="utf-8")).get("grade", 2))
+        except (json.JSONDecodeError, TypeError, ValueError):
+            pass
+    return 2
+
 # Anchored to this file's own package dir, not cwd -- the unified app launches from
 # unified_courses/ so both student/ and professional/ packages can coexist, which
 # would otherwise resolve a bare relative path to the wrong (shared) location.
@@ -202,8 +220,8 @@ if mode == "Course from an exam paper (verbatim)":
     with st.expander("1. Paper", expanded=not st.session_state["paper_source_text"]):
         pcol1, pcol2, pcol3 = st.columns(3)
         p_grade = pcol1.number_input(
-            "Grade", min_value=1, max_value=13, value=5, key="paper_grade",
-            help=grade_band_context(st.session_state.get("paper_grade", 5)),
+            "Grade", min_value=1, max_value=13, value=_default_grade_pref(), key="paper_grade",
+            help=grade_band_context(st.session_state.get("paper_grade", _default_grade_pref())),
         )
         p_subject = pcol2.text_input("Subject", value="", key="paper_subject")
         p_medium = pcol3.selectbox("Medium (language)", ["english", "sinhala"], key="paper_medium")
@@ -305,8 +323,8 @@ with col_source:
     with st.expander("1. Source material", expanded=not st.session_state["source_text"]):
         col1, col2, col3 = st.columns(3)
         grade = col1.number_input(
-            "Grade", min_value=1, max_value=13, value=2, key="course_grade",
-            help=grade_band_context(st.session_state.get("course_grade", 2)),
+            "Grade", min_value=1, max_value=13, value=_default_grade_pref(), key="course_grade",
+            help=grade_band_context(st.session_state.get("course_grade", _default_grade_pref())),
         )
         subject = col2.text_input("Subject", value="english")
         # Constrained to exactly what the pipeline supports (gTTS "en"/"si", per

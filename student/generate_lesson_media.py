@@ -51,7 +51,7 @@ lesson JSON -- there's no LLM in that decision, only ai_automation.py's
 freeform-teacher-prompt flow uses an LLM to decide which tool to call.
 
 Optional: --teacher-profile points at a JSON file (see teacher_profile.json)
-with age_group/gender_target/tone/comment. When given, personalization.py's
+with grade/gender_target/tone/comment. When given, personalization.py's
 LangChain system+user prompt chain rewrites *what* gets generated for
 images, video, and vocabulary narration audio to match that profile.
 listening/speaking audio is deliberately never personalized -- see
@@ -412,7 +412,7 @@ if __name__ == "__main__":
     parser.add_argument("--skip-existing", type=lambda v: v.lower() != "false", default=True,
                          help="Skip assets that already exist on disk (default: true)")
     parser.add_argument("--teacher-profile", default=None,
-                         help="Path to a teacher profile JSON (age_group/gender_target/tone/comment) to personalize generation prompts")
+                         help="Path to a teacher profile JSON (grade/gender_target/tone/comment) to personalize generation prompts")
     args = parser.parse_args()
 
     run(args.lesson_json, args.out, args.style, args.skip_existing, args.dry_run, args.teacher_profile)

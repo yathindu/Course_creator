@@ -42,6 +42,7 @@ except st.errors.StreamlitSecretNotFoundError:
 import student.generate_lesson_media as hf
 import student.openrouter_pipeline as orp
 from student.image_processing import BACKGROUND_COLORS, flatten_on_background, has_transparency
+from student.courseware_extraction import grade_band_context
 from student.personalization import is_sinhala, load_teacher_profile, personalize, translate_to_english
 
 # Data (drafts/, generated_content/, teacher_profile.json, etc.) lives next to this
@@ -126,11 +127,14 @@ with st.container(border=True):
     st.subheader("🧑‍🏫 Teacher preference")
     _default_profile = load_teacher_profile(_BASE_DIR / "teacher_profile.json") if (_BASE_DIR / "teacher_profile.json").exists() else {}
     pcol1, pcol2 = st.columns(2)
-    age_group = pcol1.text_input("Age group", _default_profile.get("age_group", ""))
+    grade_pref = pcol1.number_input(
+        "Grade", min_value=1, max_value=13, value=int(_default_profile.get("grade", 2)),
+        key="teacher_pref_grade", help=grade_band_context(st.session_state.get("teacher_pref_grade", 2)),
+    )
     gender_target = pcol2.text_input("Gender target", _default_profile.get("gender_target", "neutral"))
     tone = st.text_input("Tone", _default_profile.get("tone", ""))
     comment = st.text_area("Comment", _default_profile.get("comment", ""))
-    teacher_profile = {"age_group": age_group, "gender_target": gender_target, "tone": tone, "comment": comment}
+    teacher_profile = {"grade": int(grade_pref), "gender_target": gender_target, "tone": tone, "comment": comment}
 
     # Autosave: write back to teacher_profile.json on any change, so a crash/restart doesn't
     # lose what was typed here -- merge onto the existing file rather than overwrite it outright,

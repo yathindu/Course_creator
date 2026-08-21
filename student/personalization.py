@@ -38,6 +38,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
 
 from student.config import MODEL, MODEL_PROVIDER
+from student.courseware_extraction import grade_band_context
 
 load_dotenv()
 HF_TOKEN = os.environ.get("HF_TOKEN")
@@ -49,6 +50,8 @@ Learning context:
 - Subject: {subject}
 - Medium (language): {medium}
 
+{grade_band_context}
+
 Mode (activity type): {activity_type}
 Target media: {media_kind}
 Desired behaviour/style: {behaviour}
@@ -56,8 +59,7 @@ Desired behaviour/style: {behaviour}
 Task: rewrite the given content into a short, vivid description suited to
 the mode, media, and behaviour above. Preserve the core subject exactly --
 never substitute, translate, or drop it. Match vocabulary and sentence
-complexity to the grade level above -- a grade 2 lesson needs simpler words
-and shorter sentences than a grade 5 one.
+complexity to the grade-band guidance above.
 
 If media is "image" and behaviour is "natural" (photorealistic): describe
 an objective real-world photographic scene ONLY -- physical appearance,
@@ -65,12 +67,11 @@ pose, setting, lighting, like a wildlife-documentary caption. Do NOT use
 storybook, fairy-tale, or anthropomorphic language: no personality, no
 "happy"/"gentle"/"friendly", no talking, no props like flower crowns, no
 whimsical scenery like butterflies unless literally present in the
-original content. The teacher's tone/age-group/comment below describe how
-NARRATION should sound to a child -- they say nothing about how the
-picture should look. For behaviour="natural" ignore them completely, even
-if the tone is "playful" or the age group is young; a photo of an adult
-animal is not less warm or appropriate for a young learner than a picture
-of a baby animal.
+original content. The teacher's tone/comment below describe how NARRATION
+should sound to a child -- they say nothing about how the picture should
+look. For behaviour="natural" ignore them completely, even if the tone is
+"playful"; a photo of an adult animal is not less warm or appropriate for
+a young learner than a picture of a baby animal.
 If the subject is an animal, describe an ADULT of the species (unless the
 original content specifically says baby/young/chick/calf/etc) and NEVER
 use diminutive/cute wording: no "tiny", "little", "baby", "fluffy", "cute",
@@ -142,7 +143,6 @@ def _has_disallowed_baby_language(text, original_content):
     return bool(_BABY_CUE_RE.search(text))
 
 USER_TEMPLATE = """Teacher preference profile:
-- Age group: {age_group}
 - Gender target: {gender_target}
 - Tone: {tone}
 - Teacher's comment: {comment}
@@ -198,21 +198,38 @@ def translate_to_english(text):
     return result.content.strip()
 
 
+def _safe_grade_band_context(grade):
+    """grade_band_context() requires a real grade number -- learning_context's grade
+    is "unspecified" (a string) whenever a caller doesn't pass one, e.g. generate_
+    lesson_media.py's CLI path (see its --teacher-profile help text) can run without
+    a lesson's grade wired through. Falls back to generic guidance rather than
+    crashing personalize() over a missing optional field."""
+    try:
+        return grade_band_context(grade)
+    except (TypeError, ValueError):
+        return "No specific grade was given for this content -- use moderate, broadly age-appropriate vocabulary."
+
+
 def personalize(content, activity_type, media_kind, behaviour, teacher_profile, learning_context=None):
     """Run the system+user prompt chain and return the personalized text.
     learning_context: optional dict with grade/subject/medium, normally lesson.get(...)
     values pulled straight from the lesson JSON (not the teacher profile -- these are
-    facts about the lesson itself, distinct from the teacher's stylistic preferences)."""
+    facts about the lesson itself, distinct from the teacher's stylistic preferences).
+    Grade-band vocabulary guidance is driven by the lesson's own grade here, not the
+    teacher profile's "grade" preference -- the profile's grade is a UI default (see
+    app.py's Teacher preference section and courseware_portal.py's Grade field
+    default), while this rewrite needs to match the actual content being generated,
+    which is always the lesson currently loaded, not a stale saved preference."""
     learning_context = learning_context or {}
     chain = _prompt | _get_llm()
     result = chain.invoke({
         "grade": learning_context.get("grade", "unspecified"),
         "subject": learning_context.get("subject", "unspecified"),
         "medium": learning_context.get("medium", "unspecified"),
+        "grade_band_context": _safe_grade_band_context(learning_context.get("grade")),
         "activity_type": activity_type,
         "media_kind": media_kind,
         "behaviour": behaviour,
-        "age_group": teacher_profile.get("age_group", "unspecified"),
         "gender_target": teacher_profile.get("gender_target", "neutral"),
         "tone": teacher_profile.get("tone", "neutral"),
         "comment": teacher_profile.get("comment", "none"),
