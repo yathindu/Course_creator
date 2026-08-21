@@ -240,6 +240,54 @@ _approved_count = sum(1 for _kind, _t in all_tasks if (final_root / _t["out_path
 st.progress(_approved_count / len(all_tasks),
             text=f"{_approved_count}/{len(all_tasks)} assets approved for this lesson")
 
+if _approved_count == len(all_tasks):
+    with st.container(border=True):
+        st.subheader("🚀 Publish to Tutor-App")
+        st.caption("Every asset for this lesson is approved. Publish encrypts the lesson JSON and "
+                   "uploads it plus its approved media to Tutor-App's Cloudflare R2 store, the same "
+                   "place the app already reads live content from -- no separate deploy step.")
+
+        if st.button("Preview publish", key="preview_publish"):
+            try:
+                from student.r2_publish import build_publish_plan
+                st.session_state["publish_plan"] = {"_lesson_id": lesson["id"],
+                                                      **build_publish_plan(lesson, final_root)}
+            except Exception as e:
+                st.error(f"Couldn't build a publish plan: {e}")
+                st.session_state.pop("publish_plan", None)
+
+        _plan = st.session_state.get("publish_plan")
+        # Guard against a stale plan from a *different* lesson lingering in
+        # session_state if the teacher swaps the uploaded lesson JSON without
+        # re-clicking Preview -- publishing the wrong lesson's plan to a live
+        # bucket would be a real, hard-to-notice mistake, not a cosmetic one.
+        if _plan and _plan["_lesson_id"] == lesson["id"]:
+            if _plan["missing"]:
+                st.warning(
+                    f"{len(_plan['missing'])} referenced media file(s) are missing locally and won't "
+                    "be published (the app will show broken media for these):\n\n"
+                    + "\n".join(f"- {m}" for m in _plan["missing"])
+                )
+            st.write(f"Will publish **{len(_plan['uploads'])} file(s)** to "
+                     f"`r2://{_plan['bucket']}/{_plan['prefix']}/`:")
+            for _u in _plan["uploads"]:
+                st.caption(f"`{_u['label']}` → `{_u['key']}`")
+
+            st.warning("This uploads directly to Tutor-App's live production bucket -- real students "
+                       "may see this content immediately.")
+            _confirm = st.checkbox("I've reviewed the file list above and want to publish for real",
+                                    key="publish_confirm_checkbox")
+            if st.button("Confirm & Publish", disabled=not _confirm, type="primary"):
+                try:
+                    from student.r2_publish import publish_lesson
+                    with st.spinner("Publishing to Tutor-App..."):
+                        _result = publish_lesson(lesson, final_root, dry_run=False)
+                    st.success(f"Published {len(_result['uploads'])} file(s) to Tutor-App.")
+                    st.session_state.pop("publish_plan", None)
+                    st.session_state.pop("publish_confirm_checkbox", None)
+                except Exception as e:
+                    st.error(f"Publish failed: {e}")
+
 if final_root.exists() and any(final_root.iterdir()):
     with st.container(border=True):
         st.subheader("⬇️ Download")

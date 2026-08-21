@@ -19,3 +19,5 @@ torch==2.13.0
 transformers==5.15.0
 fastapi==0.141.1
 uvicorn[standard]==0.52.0
+boto3==1.40.19
+pycryptodome==3.23.0
