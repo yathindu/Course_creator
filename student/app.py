@@ -42,7 +42,7 @@ except st.errors.StreamlitSecretNotFoundError:
 import student.generate_lesson_media as hf
 import student.openrouter_pipeline as orp
 from student.image_processing import BACKGROUND_COLORS, flatten_on_background, has_transparency
-from student.courseware_extraction import grade_band_context, suggested_teacher_preference
+from student.grade_bands import grade_band_context, suggested_teacher_preference
 from student.personalization import is_sinhala, load_teacher_profile, personalize, translate_to_english
 
 # Data (drafts/, generated_content/, teacher_profile.json, etc.) lives next to this

@@ -38,7 +38,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
 
 from student.config import MODEL, MODEL_PROVIDER
-from student.courseware_extraction import grade_band_context
+from student.grade_bands import grade_band_context
 
 load_dotenv()
 HF_TOKEN = os.environ.get("HF_TOKEN")

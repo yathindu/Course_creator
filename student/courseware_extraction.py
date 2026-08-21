@@ -62,6 +62,13 @@ from student.courseware_schema import (
     prune_activity_fields,
     prune_lesson_fields,
 )
+# Re-exported here (not just used internally) so existing "from
+# student.courseware_extraction import grade_band_context" call sites (e.g.
+# courseware_portal.py, which already needs this whole heavy module regardless)
+# keep working unchanged. app.py/personalization.py must import these from
+# student.grade_bands directly instead -- see that module's docstring for why
+# (a real production ImportError this exact pattern caused, 2026-08-21).
+from student.grade_bands import grade_band_context, suggested_teacher_preference  # noqa: F401
 
 load_dotenv()
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
@@ -220,95 +227,6 @@ def extract_text(source_paths, on_page=None):
         suffix = Path(path).suffix.lower()
         parts.append(extract_text_from_pdf(path, on_page=on_page) if suffix == ".pdf" else extract_text_from_image(path))
     return "\n\n".join(parts)
-
-
-# ---------------------------------------------------------------------------
-# Sri Lankan school system: grade bands with genuinely different curriculum
-# stages, each needing a different register/vocabulary/complexity target from
-# the LLM -- "grade 2" and "grade 12" are not the same instruction with a
-# different number spliced in. Bands match the actual national structure:
-# Primary, Junior Secondary, Senior Secondary (G.C.E. Ordinary Level, examined
-# at the end of grade 11), and Collegiate (G.C.E. Advanced Level, examined at
-# the end of grade 13, where students specialize into a stream -- Science/
-# Commerce/Arts/Technology -- rather than a single shared syllabus).
-# ---------------------------------------------------------------------------
-def grade_band_context(grade):
-    """One ready-to-splice guidance paragraph, keyed off which stage of the Sri
-    Lankan school system `grade` falls into. Vocabulary, register, and assumed
-    prior knowledge differ sharply across these stages, so every generation
-    prompt that writes learner-facing text should use this instead of a bare
-    "grade {grade}" number, which otherwise leaves the LLM to guess what that
-    number implies."""
-    grade = int(grade)
-    if grade <= 5:
-        stage, guidance = "Primary (grades 1-5)", (
-            "Use very short, simple sentences and everyday vocabulary only. "
-            "Explain any term a young child wouldn't already know. Favor "
-            "concrete, familiar examples (home, family, animals, play) over "
-            "abstract ones. Avoid subject-specific jargon unless the source "
-            "text itself uses it, and define it in context if so."
-        )
-    elif grade <= 9:
-        stage, guidance = "Junior Secondary (grades 6-9)", (
-            "Use moderate sentence complexity. Subject-specific terms are fine "
-            "but explain/introduce them the first time they're used rather than "
-            "assuming prior knowledge. Balance concrete examples with simple "
-            "abstract/conceptual reasoning."
-        )
-    elif grade <= 11:
-        stage, guidance = "Senior Secondary / G.C.E. Ordinary Level (grades 10-11)", (
-            "Use a formal academic register and exam-oriented phrasing, matching "
-            "how real G.C.E. O-Level questions are worded. Subject terminology "
-            "can be used freely without re-explaining basics, but keep "
-            "explanations precise and unambiguous -- this is exam-prep content."
-        )
-    else:
-        stage, guidance = "Collegiate / G.C.E. Advanced Level (grades 12-13)", (
-            "Use an advanced, subject-specialist register appropriate to A-Level "
-            "stream content (Science/Commerce/Arts/Technology). Assume strong "
-            "foundational knowledge from earlier grades -- do not re-explain "
-            "basic concepts. Use precise technical vocabulary and exam-board-"
-            "style question phrasing, at a depth appropriate to pre-university "
-            "study."
-        )
-    return f"Grade {grade} falls in Sri Lanka's {stage} stage. {guidance}"
-
-
-def suggested_teacher_preference(grade):
-    """A starting-point (tone, comment) pair for the Teacher preference fields in
-    app.py, keyed off the same grade bands as grade_band_context() above -- these
-    feed personalization.py's *style* rewrite (image/video mood, narration tone),
-    a different concern from grade_band_context()'s *vocabulary complexity*
-    guidance, so kept as a separate function rather than folded into it. Purely a
-    suggested default a teacher can accept or overwrite via app.py's "Suggest for
-    this grade" button -- never applied automatically, since a teacher's own typed
-    preference should never be silently clobbered by a grade change."""
-    grade = int(grade)
-    if grade <= 5:
-        return (
-            "playful, warm, and encouraging",
-            "Keep imagery bright and non-scary. Prefer simple, short sentences for "
-            "anything read aloud.",
-        )
-    if grade <= 9:
-        return (
-            "friendly but a bit more grown-up -- encouraging without being childish",
-            "Mild real-world detail and simple diagrams are fine. Avoid babyish "
-            "imagery, but keep the overall feel upbeat and approachable.",
-        )
-    if grade <= 11:
-        return (
-            "clear, respectful, and exam-focused -- motivating without being "
-            "patronizing",
-            "Keep visuals realistic and straightforward, not cartoonish -- this age "
-            "group tends to find childish styling off-putting. Favor clarity over "
-            "decoration.",
-        )
-    return (
-        "professional and direct -- treat the student as a young adult",
-        "Avoid childish or cartoonish styling entirely. Imagery and narration "
-        "should feel closer to how a textbook or lecture would present it.",
-    )
 
 
 # ---------------------------------------------------------------------------
